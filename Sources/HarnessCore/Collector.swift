@@ -67,7 +67,8 @@ package struct Collector {
     }
 
     /// Reads, takes the new items and scrolls until a stop. `pause` waits after a scroll that
-    /// brought nothing new, for lists that load more over the network.
+    /// brought nothing new, for lists that load more over the network, and before trying a
+    /// failed scroll once more, for a window that was briefly out of reach.
     package mutating func run(
         read: () async throws -> RawNode,
         scroll: (RawNode) async throws -> Bool,
@@ -106,7 +107,11 @@ package struct Collector {
             idle = fresh == 0 ? idle + 1 : 0
             if idle >= idleLimit { return (taken, .end) }
             if now() >= deadline { return (taken, .time) }
-            guard let last = items.last, try await scroll(last) else { return (taken, .stuck) }
+            guard let last = items.last else { return (taken, .stuck) }
+            if try await !scroll(last) {
+                await pause(1)
+                guard try await scroll(last) else { return (taken, .stuck) }
+            }
             if idle > 0 { await pause(idle) }
         }
     }

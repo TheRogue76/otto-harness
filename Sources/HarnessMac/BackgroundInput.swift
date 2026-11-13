@@ -86,17 +86,25 @@ enum BackgroundInput {
         )
     }
 
-    /// Whether a Mac window on the current Space holds `point` (global) and the private calls
-    /// resolve.
+    /// Whether a Mac window holds `point` (global), is on screen on the current Space or on a
+    /// Space that isn't showing, and the private calls resolve.
     static func reachable(_ point: CGPoint, in window: WindowService.Window, isOnScreen: (UInt32) -> Bool = BackgroundInput.isOnScreen) -> Bool {
         guard isAvailable, !window.isSimulator, window.info.android == nil, !window.info.minimized,
               window.space.frame.contains(point) else { return false }
         return window.info.otherSpace == true || isOnScreen(window.info.id)
     }
 
-    /// Whether the window server shows the window on the current Space.
+    /// Whether the window server shows the window on the current Space, or has it on another
+    /// Space, where background input reaches it too; a window resolved while its Space showed
+    /// stays reachable when the user switches desktops.
     static func isOnScreen(_ window: UInt32) -> Bool {
-        OnScreenWindow.current(of: window, ignoring: getpid()) != nil
+        OnScreenWindow.current(of: window, ignoring: getpid()) != nil || isOnAnotherSpace(window)
+    }
+
+    /// Whether the window server has the window on a Space other than the one showing.
+    static func isOnAnotherSpace(_ window: UInt32) -> Bool {
+        guard let active = SkyLight.activeSpace(), let spaces = SkyLight.spaces(ofWindow: window), !spaces.isEmpty else { return false }
+        return !spaces.contains(active)
     }
 
     /// Sends the gesture; false when it couldn't be posted.

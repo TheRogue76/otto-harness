@@ -91,6 +91,21 @@ struct CollectorTests {
         #expect(numbers(try await run(&byLink, list).items) == Array(0..<20))
     }
 
+    @Test func aScrollThatFailsOnceIsTriedAgain() async throws {
+        let list = FakeTimeline(total: 20)
+        var failures = 1
+        var collector = collector()
+        let outcome = try await collector.run(read: { list.read() }, scroll: { _ in
+            if failures > 0 {
+                failures -= 1
+                return false
+            }
+            return list.scroll()
+        }, pause: { _ in })
+        #expect(numbers(outcome.items) == Array(0..<20))
+        #expect(outcome.stop == .end)
+    }
+
     @Test func stopsWhenItCantScrollOrTimeRunsOut() async throws {
         let list = FakeTimeline(total: 40)
         var stuck = collector()
