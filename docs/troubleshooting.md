@@ -130,8 +130,9 @@ desktop, or run `launch "App" --activate`, which takes you there.
 thumbnail in Stage Manager's strip. `window activate` brings it to the stage; `snapshot`
 and `press` work without that.
 
-**Keys go to the wrong window.** Keys go to the app's focused window; a `keyWindow` notice
-says when that isn't the one you named. Focus the window first (`window activate`).
+**Keys go to the wrong window.** Keys go to the app's focused window. When you name a window,
+Otto makes it the app's focused window first (a `keyWindow` notice says so) and refuses to send
+the keys if it can't; then bring it forward with `window activate` or type into a named field.
 
 **Secure Input is on.** A password field has focus somewhere, and macOS blocks synthetic
 typing until it loses focus.

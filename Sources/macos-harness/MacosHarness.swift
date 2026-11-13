@@ -24,7 +24,14 @@ struct MacosHarness: ParsableCommand {
     /// the helper starts; then runs the command.
     static func main() {
         HarnessPaths.migrateLegacyFolders()
-        main(nil)
+        let names = configuration.subcommands.flatMap { [$0.configuration.commandName ?? $0._commandName] + $0.configuration.aliases }
+        switch CommandAliases.resolve(Array(CommandLine.arguments.dropFirst()), commands: names) {
+        case .run(let arguments):
+            main(arguments)
+        case .explain(let message):
+            Output.error(message)
+            Foundation.exit(64)
+        }
     }
 }
 

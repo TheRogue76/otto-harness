@@ -1,5 +1,11 @@
 # Knowledge log
 
+## 2026-11-13
+
+* **Update**: [Interface contract](/design/interface-contract.md) and [Actions](/design/actions.md): `otto act` runs the action's command, unknown commands suggest the nearest, `select` checks the row became selected, `act type` takes `text` alone as the text, and `read` points scrolling lists to `collect`.
+* **Update**: [Actions](/design/actions.md) and [Interface contract](/design/interface-contract.md): keys aimed at a named window make it the app's focused window first, or are refused; `window activate` falls back to activating the app.
+* **Update**: [Actions](/design/actions.md): `press` hit-tests before falling back to a click, and refuses when something else covers the element.
+
 ## 2026-11-07
 
 * **Update**: [Control Tower](/design/ui-control-tower.md): the two design canvases' links point at the owner's personal account, where they moved on 2026-11-06.

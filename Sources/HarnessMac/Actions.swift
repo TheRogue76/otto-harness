@@ -165,6 +165,8 @@ extension ActionService {
             )
         }
         let allowFocused = [.type, .key, .paste].contains(params.action)
+        let namedFocus = allowFocused && params.element == nil && !params.real && !window.isSimulator
+            ? try await focusNamedWindow(window, of: app, named: params.target.window != nil) : nil
         var target: ResolvedElement
         if window.isSimulator, let selector = params.element, selector.ref == nil, !selector.isEmpty {
             target = try await SimulatorScrolling.reveal(selector, window: window, app: app, deadline: scrollDeadline)
@@ -185,7 +187,7 @@ extension ActionService {
         }
 
         var via = "AX"
-        var notices: [Notice] = [treeNotice].compactMap { $0 }
+        var notices: [Notice] = [treeNotice, namedFocus].compactMap { $0 }
         let focusUnknown = params.element == nil && CFEqual(target.element, window.element)
         if focusUnknown {
             notices.append(Notice(
@@ -217,6 +219,12 @@ extension ActionService {
                 if target.raw.role == "AXMenuItem" { await Settle.waitForMenuToClose(target.element) }
             } else if let visible = target.visible {
                 let point = CGPoint(x: visible.midX, y: visible.midY)
+                if let cover = ClickTarget.cover(at: point, of: target.element, pid: app.pid) {
+                    throw RPCError(
+                        code: RPCErrorCode.failed,
+                        message: "\(name) has no accessibility action, and \(ClickTarget.describe(cover)) covers it where it would be clicked, so nothing was pressed. Close or move what covers it, or press that instead if it's what you meant."
+                    )
+                }
                 let gesture = BackgroundInput.Gesture.click(count: 1, button: .left)
                 if let off = BackgroundInput.turnedOffNotice(gesture, at: point, in: window) {
                     notices.append(off)
@@ -270,8 +278,17 @@ extension ActionService {
         case .select:
             if isSettable(target.element, "AXSelected") {
                 try check(AX.set(target.element, "AXSelected", kCFBooleanTrue), doing: "select \(name)", notices: &notices)
+                if (AX.attribute(target.element, "AXSelected") as? Bool) == false {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    if (AX.attribute(target.element, "AXSelected") as? Bool) == false {
+                        throw RPCError(code: RPCErrorCode.failed, message: "\(name) says it can be selected, but stayed unselected; `click` it instead.")
+                    }
+                }
+            } else if let action = pressActionName(actions: target.raw.actions, role: target.raw.role) {
+                try check(AX.perform(target.element, action), doing: "select \(name)", notices: &notices)
             } else {
-                try check(AX.perform(target.element, try pressAction(for: target, name: name)), doing: "select \(name)", notices: &notices)
+                let offered = target.raw.actions.isEmpty ? "none" : target.raw.actions.map { $0.replacingOccurrences(of: "AX", with: "").lowercased() }.joined(separator: ", ")
+                throw RPCError(code: RPCErrorCode.failed, message: "\(name) can't be selected through accessibility (its actions: \(offered)); `click` it instead.")
             }
             performed = "selected \(name)"
         case .increment, .decrement:
@@ -343,6 +360,7 @@ extension ActionService {
         case .type:
             let text = try required(params.value, "type needs text")
             if params.element == nil {
+                if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                 try await checkKeyWindow(of: app, context: context, sending: "Typing without a field")
             }
             if typeThroughAX(text, into: target) {
@@ -377,6 +395,7 @@ extension ActionService {
                     if window.info.hasSheet, let panel = await panelService(for: app) {
                         post(combo, to: panel)
                     } else {
+                        if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                         try await checkKeyWindow(of: app, context: context, sending: "The paste")
                         post(combo, to: app.pid)
                     }
@@ -409,12 +428,13 @@ extension ActionService {
                 post(combo, to: panel)
                 notices.append(Notice(kind: "panel", message: "A file panel is open, so the keys went to its process."))
             } else {
+                if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                 try await checkKeyWindow(of: app, context: context, sending: combo.display)
                 post(combo, to: app.pid)
             }
             via = "background keys"
             performed = "sent \(combo.display) to \(app.name)"
-            if !window.info.focused, !window.info.hasSheet {
+            if params.target.window == nil, !window.info.focused, !window.info.hasSheet {
                 notices.append(Notice(kind: "keyWindow", message: "Keys go to \(app.name)'s focused window, which isn't window \(window.info.id) “\(window.info.title)”."))
             }
             let frontmost = await AppControl.frontmostPID()
@@ -584,6 +604,24 @@ extension ActionService {
             Thread.sleep(forTimeInterval: 0.04)
         }
         return AX.value(target.element) != before
+    }
+
+    /// Makes a named window the app's focused window before keys are posted to the app, since
+    /// background keys go to its focused window; refuses when it can't, so they don't land elsewhere.
+    static func focusNamedWindow(_ window: WindowService.Window, of app: AppRef, named: Bool) async throws -> Notice? {
+        guard named, !window.info.hasSheet, WindowService.focusedWindowID(of: app) != window.info.id else { return nil }
+        _ = AX.set(window.element, "AXMain", kCFBooleanTrue)
+        _ = AX.set(window.element, "AXFocused", kCFBooleanTrue)
+        for _ in 0..<10 {
+            if WindowService.focusedWindowID(of: app) == window.info.id {
+                return Notice(kind: "keyWindow", message: "Made window \(window.info.id) “\(window.info.title)” \(app.name)'s focused window first, since keys go to its focused window.")
+            }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        throw RPCError(
+            code: RPCErrorCode.failed,
+            message: "Keys go to \(app.name)'s focused window, and window \(window.info.id) “\(window.info.title)” couldn't be made its focused window, so nothing was sent. Run `window activate` on it first, or type into a named field."
+        )
     }
 
     /// Refuses keystrokes that would land in a window another agent session is working in:

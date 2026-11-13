@@ -156,6 +156,16 @@ private extension JSONValue {
     }
 }
 
+extension MCPServer {
+    /// The element and value an `act` call means: for `type` and `paste` with no `value`, a `text`
+    /// that's the only selector is the text to type, not an element to find.
+    static func actInputs(action: ElementAction, selector: ElementSelector?, value: String?) -> (ElementSelector?, String?) {
+        guard [.type, .paste].contains(action), value == nil, let selector, let text = selector.text,
+              selector.ref == nil, selector.role == nil, selector.identifier == nil, selector.ocr != true else { return (selector, value) }
+        return (nil, text)
+    }
+}
+
 public enum MCPTools {
     static let instructions = """
         \(HarnessProduct.displayName) lets you see and operate Mac apps. Typical loop: `apps` or `windows` to find the app, \
@@ -508,8 +518,9 @@ public enum MCPTools {
             guard let action = arguments.string("action").flatMap(ElementAction.init(rawValue:)) else {
                 throw RPCError(code: RPCErrorCode.invalidParams, message: "action must be one of \(ElementAction.allCases.map(\.rawValue).joined(separator: ", ")).")
             }
+            let (element, value) = MCPServer.actInputs(action: action, selector: arguments.selector, value: arguments.string("value"))
             let result = try connection.call(ActMethod.self, .init(
-                target: try arguments.target, element: arguments.selector, action: action, value: arguments.string("value"),
+                target: try arguments.target, element: element, action: action, value: value,
                 count: arguments.int("count") ?? 1, diff: arguments.bool("diff") ?? true, real: arguments.bool("real") ?? false
             ))
             return [text(Render.action(result))]

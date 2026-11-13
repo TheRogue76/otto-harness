@@ -123,6 +123,26 @@ keep the focused window.
    notice) and when the background events couldn't be sent
    (`backgroundNoEffect`); for drags, hovers and held keys; and by `--real`,
    `type --real` and `key --real`. See the guard rails below.
+   Before `press` falls back to a click, it hit-tests its visible center
+   (`ClickTarget`): the element there must be the target, inside it, or
+   one of its containers, else the press is refused, naming what covers
+   it. Without this check a press in a web console clicked an overlay
+   covering the element and submitted a build for review
+   ([#178](https://github.com/TheRogue76/otto-harness/issues/178)).
+   Background keys go to the app's focused window, so when the action
+   names another window, `key`, typing without a field and `paste` first
+   set that window's `AXMain` and `AXFocused`, and refuse when it doesn't
+   become focused within 0.5 s, instead of sending the keys to another
+   window ([#179](https://github.com/TheRogue76/otto-harness/issues/179)).
+   `window activate` falls back to activating the app through
+   `NSRunningApplication` when raising and focusing through accessibility
+   didn't bring the window in front (Astro refuses `AXRaise` with -25205).
+   `select` reads `AXSelected` back: SwiftUI rows can say it's settable and
+   ignore it, and a row with neither that nor a press action is refused
+   with its actions listed, pointing to `click`. Over MCP, `act` with
+   `type` or `paste`, no `value` and `text` as the only selector types that
+   text, since agents mix the two up
+   ([#184](https://github.com/TheRogue76/otto-harness/issues/184)).
 
 A background click that shows no effect isn't repeated with the real mouse
 (the owner chose this hybrid for

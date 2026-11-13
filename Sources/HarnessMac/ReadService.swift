@@ -27,7 +27,7 @@ extension ReadService {
         let raw = AXReader(maxNodes: 5000, maxDepth: 80, timeBudget: 5, valueLimit: limit).read(element)
         var shaper = TreeShaper(space: window.space, maxNodes: 1, maxDepth: 0, ref: Snapshotter.registrar(for: app))
         shaper.links = true
-        let notices = await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 }
+        let notices = await Notices.collect(for: window.info) + [treeNotice, ListHint.notice(for: raw)].compactMap { $0 }
         return result(raw, node: shaper.makeNode(raw, visible: visible), app: app, window: window.info, ref: shaper.ref, notices: notices)
     }
 
