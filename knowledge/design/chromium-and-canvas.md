@@ -74,6 +74,8 @@ points making one row, left to right), since web trees often differ from
 what's shown; and `read` runs a group with no label around one line of
 inline text into its neighbours' line, since Gmail wraps highlighted
 search words in such groups and a sentence came back in four pieces.
+Only groups whose frames show one line count: without frames a group
+might be a block, like a feed post's text, which must keep its own line.
 
 Agents couldn't tell where a URL went or keep hold of a browser window
 ([#182](https://github.com/TheRogue76/otto-harness/issues/182)), so:
