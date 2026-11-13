@@ -224,7 +224,24 @@ public enum AppControl {
             )
         }
 
-        guard let url = appURL(for: params.app) else {
+        if let running, let id = params.window {
+            let window = try WindowService.resolve(Target(app: "\(running.pid)", window: id), app: running)
+            _ = AX.set(window.element, "AXMain", kCFBooleanTrue)
+            _ = AX.set(window.element, "AXFocused", kCFBooleanTrue)
+        } else if params.window != nil {
+            throw RPCError(code: RPCErrorCode.invalidParams, message: "A window to open in only applies when \(params.app) is already running.")
+        }
+        if let running, !files.isEmpty, let bundle = running.bundleIdentifier {
+            let copies = NSRunningApplication.runningApplications(withBundleIdentifier: bundle).map(\.processIdentifier)
+            if copies.count > 1 {
+                throw RPCError(
+                    code: RPCErrorCode.failed,
+                    message: "Several copies of \(running.name) are running (pids \(copies.map(String.init).joined(separator: ", "))), and macOS picks which one opens files and URLs, so nothing was opened. Quit the other copies, or open it from inside the window you want (key cmd+l, type the address, key return)."
+                )
+            }
+        }
+        let runningBundle = running.flatMap { NSRunningApplication(processIdentifier: $0.pid)?.bundleURL }
+        guard let url = runningBundle ?? appURL(for: params.app) else {
             throw RPCError(code: RPCErrorCode.failed, message: "Can't find an app called “\(params.app)”. Give its name as shown in /Applications, its bundle ID, or a path to the .app.")
         }
         let configuration = NSWorkspace.OpenConfiguration()
@@ -280,6 +297,9 @@ public enum AppControl {
                 break
             }
             try? await Task.sleep(for: .milliseconds(200))
+        }
+        if running != nil, files.contains(where: { !$0.isFileURL }), let opened = await TabsService.opened(by: app) {
+            notices.append(opened)
         }
         return LaunchMethod.Result(
             app: app, windows: windows, alreadyRunning: running != nil,

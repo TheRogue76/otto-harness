@@ -76,7 +76,7 @@ No parameters.
 | `query` | string | Keep only elements whose label, value or identifier contains this, and the elements they're in. |
 | `root` | string | Ref of a node marked "+N more" to expand. |
 | `since` | `last` | Only what changed since your previous snapshot of this window with the same root, max_nodes and max_depth. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## find
 
@@ -92,7 +92,7 @@ No parameters.
 | `ocr` | boolean | Read the window's pixels with text recognition, for text the tree doesn't have; results have click points but no refs. |
 | `role` | string | Role, e.g. button. |
 | `text` | string | Label, value or identifier contains this. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## tabs
 
@@ -101,21 +101,22 @@ No parameters.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `app` (required) | string | App name, bundle ID or pid; sim:\<device> for an iOS Simulator (UDID, name or booted); android:\<device> for an Android emulator or phone (serial, name or booted). |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## read
 
-**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read.
+**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read, or with page=true only a browser window's web page, without the browser's own controls.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `app` (required) | string | App name, bundle ID or pid; sim:\<device> for an iOS Simulator (UDID, name or booted); android:\<device> for an Android emulator or phone (serial, name or booted). |
 | `exact` | boolean | text must match the whole label, value or identifier. |
 | `id` | string | Instead of a ref: exact accessibility identifier. |
+| `page` | boolean | Read only the web page in a browser window, without the browser's own controls. |
 | `ref` | string | Ref from snapshot or find, e.g. k12. |
 | `role` | string | Instead of a ref: role such as group, link, textarea. |
 | `text` | string | Instead of a ref: match label, value or identifier containing this. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## collect
 
@@ -133,7 +134,7 @@ No parameters.
 | `role` | string | Role of the items, e.g. article, row, cell. |
 | `text` | string | The items' label, value or identifier contains this. |
 | `until` | string | Stop after the first item whose text contains this. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 | `within` | string | Ref of the list or scroll area to read and scroll (default: the window). |
 
 ## screenshot
@@ -148,7 +149,7 @@ No parameters.
 | `labels` | boolean | Draw refs on the image, and a 100-point grid where a large part has none. |
 | `max_size` | integer | Longest edge in pixels (default 1568; 0 = full). |
 | `points` | boolean | One pixel per window point, so the image's pixels are pointer coordinates, when the window fits within max_size (default true); false keeps full resolution. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## menu
 
@@ -180,7 +181,7 @@ No parameters.
 | `role` | string | Instead of a ref: role such as button, textfield, switch, tab, menuitem. |
 | `text` | string | Instead of a ref: match label, value or identifier containing this. |
 | `value` | string | Value for set-value, text for type and paste, combination for key. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## pointer
 
@@ -212,7 +213,7 @@ No parameters.
 | `to_window` | integer | Drag into another window: its ID from `windows` (default: to_app's focused window). |
 | `to_x` | number | Drag destination x, relative to the destination window. |
 | `to_y` | number | Drag destination y, relative to the destination window. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 | `x` | number | Window-relative x instead of an element (the device's points for sim:, pixels for android:). |
 | `y` | number | Window-relative y instead of an element (the device's points for sim:, pixels for android:). |
 
@@ -226,7 +227,7 @@ No parameters.
 | `steps` (required) | array of object | The steps, as in a flow's steps list. |
 | `max_nodes` | integer | Most elements in the snapshot when observe is snapshot (default 250). |
 | `observe` | `changes` \| `snapshot` \| `none` | What to report afterwards: changes (default, every change the actions saw), snapshot (the window afterwards) or none. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## menu_select
 
@@ -251,7 +252,7 @@ No parameters.
 | `app` (required) | string | App name, bundle ID or pid; sim:\<device> for an iOS Simulator (UDID, name or booted); android:\<device> for an Android emulator or phone (serial, name or booted). |
 | `height` | number | Height for resize. |
 | `width` | number | Width for resize. |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 | `x` | number | Left edge for move (global points). |
 | `y` | number | Top edge for move. |
 
@@ -270,8 +271,9 @@ No parameters.
 | `language` | string | Launch it in this language, e.g. fr or pt-BR. |
 | `locale` | string | Launch it with this locale, e.g. fr_FR. |
 | `new_instance` | boolean | Start another copy even if it's running; target it by the pid in the result. |
-| `open` | array of string | Files or URLs to open with it; a running browser opens a URL in a new tab. |
+| `open` | array of string | Files or URLs to open with it; a running browser opens a URL in a new tab, and says which window and tab. |
 | `timeout` | number | Seconds to wait for a window (default 15). |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## quit
 
@@ -298,7 +300,7 @@ No parameters.
 | `role` | string | Instead of a ref: role such as button, textfield, switch, tab, menuitem. |
 | `text` | string | Instead of a ref: match label, value or identifier containing this. |
 | `timeout` | number | Seconds before giving up (default 10). |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## simulator
 
@@ -385,4 +387,4 @@ No parameters.
 | `id` | string | stop: the recording to stop; omit to stop all of yours. |
 | `max_seconds` | number | start: stop on its own after this long (default 600). |
 | `out` | string | start: absolute path of the movie to write (.mov; on Linux also .mp4, .webm or .mkv). |
-| `window` | integer | Window ID from `windows`; defaults to the focused window. |
+| `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |

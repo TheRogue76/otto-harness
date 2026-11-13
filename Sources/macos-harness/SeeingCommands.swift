@@ -7,10 +7,19 @@ struct TargetOptions: ParsableArguments {
     @Option(name: .shortAndLong, help: "App name, bundle ID or pid; sim:<device> for an iOS Simulator; android:<device> for an Android emulator or phone.")
     var app: String
 
-    @Option(name: .shortAndLong, help: "Window ID from `windows`; defaults to the focused window.")
-    var window: UInt32?
+    @Option(name: .shortAndLong, help: "Window ID from `windows`, or part of the window's title; defaults to the focused window.")
+    var window: String?
 
-    var target: Target { Target(app: app, window: window) }
+    var target: Target { Target(app: app, window: window.flatMap(UInt32.init)) }
+
+    mutating func validate() throws {
+        guard let window, UInt32(window) == nil else { return }
+        do {
+            self.window = String(try WindowTitles.resolve(window, app: app, connection: try HarnessConnection.openAnnouncingPairing()))
+        } catch let error as RPCError {
+            throw ValidationError(error.message)
+        }
+    }
 }
 
 struct Windows: ParsableCommand {
@@ -202,7 +211,7 @@ struct Tabs: ParsableCommand {
 struct Read: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Read an element in full: its whole label and value, the text inside it, and its links.",
-        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window."
+        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window; --page reads only a browser window's web page."
     )
 
     @Argument(help: "Ref from snapshot or find, e.g. k12.")
@@ -222,13 +231,16 @@ struct Read: ParsableCommand {
     @Flag(help: "--text must match the whole label, value or identifier.")
     var exact = false
 
+    @Flag(help: "Read only the web page in a browser window, without the browser's own controls.")
+    var page = false
+
     @OptionGroup var output: OutputOptions
 
     func run() throws {
         try reportingErrors(json: output.json) {
             let selector = ElementSelector(ref: ref, text: text, role: role, identifier: identifier, exact: exact)
             let result = try HarnessConnection.openAnnouncingPairing().call(
-                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector)
+                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector, page: page ? true : nil)
             )
             output.json ? try Output.json(result) : print(Render.read(result))
         }

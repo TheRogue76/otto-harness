@@ -16,6 +16,12 @@ struct ActionEffectTests {
         #expect(assess(.pointer(.click), via: "background click", notices: ["pixelsOnly"]) == "confirmed")
     }
 
+    @Test func aFieldThatHoldsTheTextConfirmsAndOneThatCantBeReadIsUnverifiable() {
+        #expect(assess(.element(.paste), notices: ["fieldHoldsText"]) == "confirmed")
+        #expect(assess(.element(.type), notices: ["fieldUnreadable"]) == "unverifiable")
+        #expect(assess(.element(.paste)) == "noChange")
+    }
+
     @Test func invisibleKindsOfWorkAreUnverifiable() {
         #expect(assess(.element(.key)) == "unverifiable")
         #expect(assess(.menu) == "unverifiable")

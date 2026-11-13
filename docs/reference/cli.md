@@ -233,7 +233,8 @@ USAGE: otto snapshot --app <app> [--window <window>] [--root <root>] [--max-node
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --root <root>           Start from this ref, e.g. to expand a node marked "+N more".
   --max-nodes <max-nodes> Most elements to show. (default: 250)
   --max-depth <max-depth> Deepest level to show. (default: 40)
@@ -259,7 +260,8 @@ ARGUMENTS:
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --role <role>           Role, e.g. button, textfield, AXCheckBox.
   --id <id>               Exact accessibility identifier.
   --exact                 Match the whole text instead of a substring.
@@ -279,9 +281,9 @@ OVERVIEW: Read an element in full: its whole label and value, the text inside it
 
 Snapshots and find shorten long labels and values; read gives them whole, with all the text inside
 the element in reading order (a post's author, text and counts, say) and where each link inside it
-goes. Without an element it reads the whole window.
+goes. Without an element it reads the whole window; --page reads only a browser window's web page.
 
-USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--json]
+USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--page] [--json]
 
 ARGUMENTS:
   <ref>                   Ref from snapshot or find, e.g. k12.
@@ -289,11 +291,14 @@ ARGUMENTS:
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --text <text>           Match label, value or identifier containing this text.
   --role <role>           Role, e.g. group, link, textarea.
   --id <id>               Exact accessibility identifier.
   --exact                 --text must match the whole label, value or identifier.
+  --page                  Read only the web page in a browser window, without the browser's own
+                          controls.
   --json                  Print JSON instead of text.
   --version               Show the version.
   -h, --help              Show help information.
@@ -313,7 +318,8 @@ USAGE: otto tabs --app <app> [--window <window>] [--json]
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --json                  Print JSON instead of text.
   --version               Show the version.
   -h, --help              Show help information.
@@ -336,7 +342,8 @@ USAGE: otto collect [<options>] --app <app>
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --role <role>           Role of the items, e.g. article, row, cell.
   --text <text>           The items' label, value or identifier contains this text.
   --id <id>               The items' exact accessibility identifier.
@@ -366,7 +373,8 @@ USAGE: otto screenshot --app <app> [--window <window>] [--element <element>] [--
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --element <element>     Crop to this element's ref.
   --max-size <max-size>   Longest edge in pixels; 0 keeps full resolution. (default: 1600)
   --labels                Draw ref labels on the elements you can act on, and a 100-point grid
@@ -430,7 +438,8 @@ OPTIONS:
                           commands).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -457,7 +466,8 @@ OPTIONS:
   -v, --value <value>     The new value.
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -481,7 +491,8 @@ OPTIONS:
                           ways).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -504,7 +515,8 @@ OPTIONS:
   --real                  Send ⌘V as a real keystroke to the frontmost app.
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -527,7 +539,8 @@ OPTIONS:
                           keys miss).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -553,7 +566,8 @@ OPTIONS:
                           commands).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -579,7 +593,8 @@ OPTIONS:
                           commands).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -605,7 +620,8 @@ OPTIONS:
                           commands).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -632,7 +648,8 @@ OPTIONS:
   --count <count>         How many steps. (default: 1)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -659,7 +676,8 @@ OPTIONS:
   --count <count>         How many steps. (default: 1)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -711,7 +729,8 @@ ARGUMENTS:
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --x <x>                 Left edge for move, in global points.
   --y <y>                 Top edge for move, in global points.
   --width <width>         Width for resize, in points.
@@ -726,7 +745,7 @@ OPTIONS:
 ```text
 OVERVIEW: Launch an app (in the background unless --activate) and wait for its first window.
 
-USAGE: otto launch <app> [--open <open> ...] [--arg <arg> ...] [--env <env> ...] [--activate] [--new-instance] [--appearance <appearance>] [--language <language>] [--locale <locale>] [--allow-idle-when-covered] [--timeout <timeout>] [--json]
+USAGE: otto launch [<options>] <app>
 
 ARGUMENTS:
   <app>                   App name, bundle ID or path to an .app.
@@ -748,6 +767,8 @@ OPTIONS:
                           Chromium and Electron apps are launched so they keep working when other
                           windows cover them; this leaves that off.
   --timeout <timeout>     Seconds to wait for a window. (default: 15.0)
+  -w, --window <window>   A running app's window to open --open's files or URLs in: its ID, or part
+                          of its title.
   --json                  Print JSON instead of text.
   --version               Show the version.
   -h, --help              Show help information.
@@ -790,7 +811,8 @@ OPTIONS:
                           commands).
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --gone                  Wait for it to disappear.
   --timeout <timeout>     Seconds before giving up. (default: 10.0)
   --json                  Print JSON instead of text.
@@ -834,7 +856,8 @@ OPTIONS:
                           (default: 1.0)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --right                 Right-click (opens context menus; their items come back as refs).
   --count <count>         Clicks: 2 for a double-click. (default: 1)
   --real                  Use the real mouse without trying the background first.
@@ -871,7 +894,8 @@ OPTIONS:
                           (default: 1.0)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --dwell <dwell>         Seconds to stay. (default: 1.2)
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
@@ -922,7 +946,8 @@ OPTIONS:
   --duration <duration>   Seconds the move takes. (default: 0.6)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --modifiers <modifiers> Keys held during the action, comma-separated: cmd,shift,opt,ctrl.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
@@ -962,7 +987,8 @@ OPTIONS:
   --real                  Use the real wheel without trying the background first.
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
   --version               Show the version.
@@ -999,7 +1025,8 @@ OPTIONS:
                           (default: 1.0)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --left <left>           Points to move left. (default: 0.0)
   --right <right>         Points to move right. (default: 0.0)
   --up <up>               Points to move up. (default: 0.0)
@@ -1037,7 +1064,8 @@ OPTIONS:
                           (default: 1.0)
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --hold <hold>           Seconds to hold. (default: 1.0)
   --no-diff               Don't wait for the UI to settle or report changes.
   --json                  Print JSON instead of text.
@@ -1708,7 +1736,8 @@ ARGUMENTS:
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --observe <observe>     What to report afterwards: changes, snapshot or none. (default: changes)
   --max-nodes <max-nodes> Most elements in the snapshot. (default: 250)
   --json                  Print JSON instead of text.
@@ -1836,7 +1865,8 @@ USAGE: otto record start --app <app> [--window <window>] [--out <out>] [--max-se
 OPTIONS:
   -a, --app <app>         App name, bundle ID or pid; sim:<device> for an iOS Simulator;
                           android:<device> for an Android emulator or phone.
-  -w, --window <window>   Window ID from `windows`; defaults to the focused window.
+  -w, --window <window>   Window ID from `windows`, or part of the window's title; defaults to the
+                          focused window.
   --out <out>             Where to write the movie: .mov, or on Linux also .mp4, .webm or .mkv
                           (default: recording-<app>-<time>.mov here).
   --max-seconds <max-seconds>

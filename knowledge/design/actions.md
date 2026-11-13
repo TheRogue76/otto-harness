@@ -143,6 +143,13 @@ keep the focused window.
    `type` or `paste`, no `value` and `text` as the only selector types that
    text, since agents mix the two up
    ([#184](https://github.com/TheRogue76/otto-harness/issues/184)).
+   After `type` or `paste` with no change in the tree, the field's own
+   value decides: holding the text confirms it (`fieldHoldsText`), and a
+   value that can't be read makes the result unverifiable
+   (`fieldUnreadable`) instead of "No change seen", which Astro's keyword
+   sheet showed although all 29 keywords went in. A field whose parents
+   don't lead to the window `find` reads gets an `outsideTree` notice
+   ([#183](https://github.com/TheRogue76/otto-harness/issues/183)).
 
 A background click that shows no effect isn't repeated with the real mouse
 (the owner chose this hybrid for

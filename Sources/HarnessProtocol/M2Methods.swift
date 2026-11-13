@@ -291,12 +291,15 @@ public enum LaunchMethod: RPCMethod {
         /// Let a Chromium or Electron app throttle itself when other windows cover it, instead of
         /// launching it with that turned off.
         public var allowIdleWhenCovered: Bool?
+        /// The running app's window to open the files or URLs in: it's made the app's main window first.
+        public var window: UInt32?
 
         public init(
             app: String, arguments: [String] = [], environment: [String: String] = [:], open: [String] = [],
             activate: Bool = false, timeout: Double = 15, newInstance: Bool? = nil, appearance: String? = nil,
-            language: String? = nil, locale: String? = nil, allowIdleWhenCovered: Bool? = nil
+            language: String? = nil, locale: String? = nil, allowIdleWhenCovered: Bool? = nil, window: UInt32? = nil
         ) {
+            self.window = window
             self.app = app
             self.arguments = arguments
             self.environment = environment

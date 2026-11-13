@@ -90,6 +90,8 @@ def mcp_session(cli):
 def kind(schema):
     if "enum" in schema:
         return " | ".join(f"`{value}`" for value in schema["enum"])
+    if isinstance(schema.get("type"), list):
+        return " or ".join(schema["type"])
     if schema.get("type") == "array":
         return f"array of {schema.get('items', {}).get('type', 'values')}"
     if schema.get("type") == "object" and "additionalProperties" in schema:

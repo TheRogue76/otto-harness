@@ -124,6 +124,10 @@ Whether the action's result was seen ([actions](/design/actions.md)):
 | `launchArgumentsIgnored` | launch | The app was already running, so launch arguments, environment and presets weren't applied |
 | `activated` | action | The app was brought to the front |
 | `raisedByFocus` | action | The window was focused because the app can't raise it |
+| `fieldHoldsText` | action | Nothing else changed after `type` or `paste`, but the field's value holds the text, so it's confirmed |
+| `fieldUnreadable` | action | Nothing visible changed and the field's value can't be read, so the result is unverifiable |
+| `outsideTree` | action | The field that took the text isn't inside the window `find` reads |
+| `opened` | launch | Where a running browser opened the URLs: the window and the showing tab's ref |
 | `partialList` | read | What was read is a scrolling list showing only the rows on screen; `collect` reads all of it |
 | `keyWindow` | action | The named window was made the app's focused window before keys went to it, or (with no window named) keys went to another window of the app |
 | `panel` | action | Keys went to an open file panel's process |

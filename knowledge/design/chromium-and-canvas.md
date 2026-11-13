@@ -65,6 +65,33 @@ text is only in the toolbar, tabs or address bar, the timeout says so with a
 same notice when every match is in the toolbar. Selectors by role or id
 search the whole window as before.
 
+Reading a page took agents many calls
+([#180](https://github.com/TheRogue76/otto-harness/issues/180)), so:
+`read --page` (`page: true` over MCP) reads just the window's first
+`AXWebArea`, without the browser's controls; `find` orders the page's
+matches as they appear on screen (rows top to bottom, tops within 4
+points making one row, left to right), since web trees often differ from
+what's shown; and `read` runs a group with no label around one line of
+inline text into its neighbours' line, since Gmail wraps highlighted
+search words in such groups and a sentence came back in four pieces.
+Only groups whose frames show one line count: without frames a group
+might be a block, like a feed post's text, which must keep its own line.
+
+Agents couldn't tell where a URL went or keep hold of a browser window
+([#182](https://github.com/TheRogue76/otto-harness/issues/182)), so:
+`launch --open` with a URL in a running browser ends with an `opened`
+notice naming the window and the showing tab's ref (read from the focused
+window 0.6 s after opening); `launch -w` makes that window the browser's
+main window first, since browsers open URLs in their last active window;
+`-w` (and MCP `window`) takes part of a window's title as well as an ID,
+which the client turns into an ID with `windows`, exact titles first,
+refusing when no window or several match, since IDs don't survive a
+restart. With URLs to open, `launch` uses the running copy's own bundle, and
+refuses when several copies of the app run (the owner's Chrome beside a
+throwaway one), since macOS picks which copy opens them. `tabs` reads the tab strip until two reads 250 ms apart
+agree (up to a second), since Chrome kept listing a tab it had just
+closed.
+
 Once a browser's page has shown its elements, the helper looks at its web
 area again at most every 3 s, since an agent found the page empty again
 later the same day in a browser it hadn't started with the flag: Chromium
@@ -151,7 +178,11 @@ images):
   (accurate mode, no language correction) and returns each match with a
   click point. When the text is part of a longer line, the point is that
   text's own box, not the line's. Matches get refs `o1`, `o2`, … that
-  can't be pressed. Without text it lists every line read.
+  can't be pressed. Without text it lists every line read. Vision
+  sometimes gives no box, or an empty one, for part of a line, so the
+  line's own box stands in and no match comes back at @0,0; OCR lines are
+  printed whole, since there's no element `read` could give in full
+  ([#186](https://github.com/TheRogue76/otto-harness/issues/186)).
 - `click`/`hover`/`drag`/`scroll --ocr --text "Play"` act on that point,
   preferring a line that is exactly the text, and list the places instead
   of guessing when there are several. `press` and other accessibility

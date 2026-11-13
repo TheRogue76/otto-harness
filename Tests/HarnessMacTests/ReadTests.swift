@@ -24,6 +24,20 @@ struct ReadTextTests {
         ])
     }
 
+    @Test func highlightedWordsStayInTheirSentence() {
+        func piece(_ value: String, x: CGFloat) -> RawNode { RawNode(role: "AXStaticText", value: value, frame: CGRect(x: x, y: 100, width: 40, height: 16)) }
+        func highlight(_ value: String, x: CGFloat) -> RawNode {
+            RawNode(role: "AXGroup", frame: CGRect(x: x, y: 99, width: 40, height: 18), children: [piece(value, x: x)])
+        }
+        let paragraph = RawNode(role: "AXGroup", frame: CGRect(x: 0, y: 100, width: 600, height: 16), children: [
+            piece("Your", x: 0), highlight("sales", x: 40), piece("are configured in the", x: 80), highlight("App", x: 300), piece("Store.", x: 340),
+        ])
+        #expect(ReadText.text(of: paragraph) == "Your sales are configured in the App Store.")
+        let tall = RawNode(role: "AXGroup", frame: CGRect(x: 0, y: 0, width: 400, height: 80), children: [piece("A heading", x: 0)])
+        #expect(!ReadText.isInline(RawNode(role: "AXGroup", children: [RawNode(role: "AXStaticText", value: "No frames")])))
+        #expect(!ReadText.isInline(tall))
+    }
+
     @Test func inlineTextRunsOnAndBlocksStartNewLines() {
         #expect(ReadText.text(of: post) == "User 0 · 21 hours ago\nPost 3 says: #alpha!\n9 likes\nLike")
     }

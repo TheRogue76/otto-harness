@@ -23,6 +23,16 @@ extension ReadService {
             element = resolved.element
             visible = resolved.visible
         }
+        if params.page == true {
+            guard params.element?.isEmpty ?? true else {
+                throw RPCError(code: RPCErrorCode.invalidParams, message: "Read a page or an element, not both; an element's ref already says where to read.")
+            }
+            let outline = AXReader(maxNodes: 8000, maxDepth: 80, timeBudget: 2).read(window.content)
+            guard let page = ElementSearch.page(in: outline), let pageElement = page.element else {
+                throw RPCError(code: RPCErrorCode.notFound, message: "\(app.name)'s window \(window.info.id) “\(window.info.title)” has no web page to read; read the window instead.")
+            }
+            element = pageElement
+        }
         AX.setTimeout(element, seconds: window.isSimulator ? 8 : 2)
         let raw = AXReader(maxNodes: 5000, maxDepth: 80, timeBudget: 5, valueLimit: limit).read(element)
         var shaper = TreeShaper(space: window.space, maxNodes: 1, maxDepth: 0, ref: Snapshotter.registrar(for: app))

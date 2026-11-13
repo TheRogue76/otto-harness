@@ -318,6 +318,8 @@ struct Launch: ParsableCommand {
     var allowIdleWhenCovered = false
     @Option(help: "Seconds to wait for a window.")
     var timeout = 15.0
+    @Option(name: .shortAndLong, help: "A running app's window to open --open's files or URLs in: its ID, or part of its title.")
+    var window: String?
     @OptionGroup var output: OutputOptions
 
     func run() throws {
@@ -329,12 +331,14 @@ struct Launch: ParsableCommand {
         }
         let paths = files.map { LaunchMethod.openItem($0) }
         try reportingErrors(json: output.json) {
-            let result = try HarnessConnection.openAnnouncingPairing().call(
+            let connection = try HarnessConnection.openAnnouncingPairing()
+            let windowID = try window.map { try WindowTitles.resolve($0, app: app, connection: connection) }
+            let result = try connection.call(
                 LaunchMethod.self,
-.init(
+                .init(
                     app: app, arguments: arguments, environment: env, open: paths, activate: activate, timeout: timeout,
                     newInstance: newInstance ? true : nil, appearance: appearance, language: language, locale: locale,
-                    allowIdleWhenCovered: allowIdleWhenCovered ? true : nil
+                    allowIdleWhenCovered: allowIdleWhenCovered ? true : nil, window: windowID
                 )
             )
             output.json ? try Output.json(result) : print(Render.launch(result))

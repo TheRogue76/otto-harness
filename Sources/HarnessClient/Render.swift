@@ -133,14 +133,15 @@ public enum Render {
     /// `e12 button "Save" id=OKButton disabled @412,120`
     public static func node(_ node: UINode) -> String {
         var parts = [node.ref, shortRole(node.subrole.flatMap { subroleNames[$0] } ?? node.role)]
-        if let label = node.label { parts.append(quote(label, limit: 80)) }
+        let whole = node.subrole == "AXOCRText"
+        if let label = node.label { parts.append(quote(label, limit: whole ? .max : 80)) }
         if let value = node.value {
             if toggleRoles.contains(node.role) {
                 parts.append(value == "1" ? "on" : value == "0" ? "off" : "value=\(quote(value, limit: 40))")
             } else if node.label == nil {
-                parts.append(quote(value, limit: 120))
+                parts.append(quote(value, limit: whole ? .max : 120))
             } else {
-                parts.append("= " + quote(value, limit: 80))
+                parts.append("= " + quote(value, limit: whole ? .max : 80))
             }
         }
         if let identifier = node.identifier { parts.append("id=\(identifier)") }
