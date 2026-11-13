@@ -197,3 +197,14 @@ private func all(_ node: RawNode) -> [RawNode] {
         #expect(throws: RPCError.self) { try AndroidTree.parse(Data("UI hierchary dumped".utf8), serial: "x", size: .zero) }
     }
 }
+
+@Suite struct AndroidKeyboardTests {
+    @Test func theKeyboardsTouchAreaIsReadWhileItShows() {
+        let normal = "      mInputShown=true\nInputMethod, id=391, displayId=0, frame=[0,132][1080,2400], globalScale=1, touchableRegion=[0,1517][1080,2400]"
+        #expect(AndroidService.keyboardArea(in: normal) == [CGRect(x: 0, y: 1517, width: 1080, height: 883)])
+        let stylus = "mInputShown=true\nInputMethod, frame=[0,63][1080,2400], touchableRegion=[0,63][1080,2400]"
+        #expect(AndroidService.keyboardArea(in: stylus)?.first?.contains(CGPoint(x: 540, y: 900)) == true)
+        #expect(AndroidService.keyboardArea(in: "mInputShown=false\nInputMethod, touchableRegion=[0,1517][1080,2400]") == nil)
+        #expect(AndroidService.keyboardArea(in: "mInputShown=true\n") == nil)
+    }
+}

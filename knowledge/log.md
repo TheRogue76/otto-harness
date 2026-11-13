@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: [Fresh test emulators](/research/fresh-test-emulators.md) and [Interface contract](/design/interface-contract.md): Android taps hide the keyboard first when its touch area covers the element.
 * **Update**: [Actions](/design/actions.md): the background route reaches a window that moved to another Space after it was resolved, and `collect` retries a failed scroll once.
 * **Update**: [Flows](/design/flows.md): `skip_if_running` skips a flow while the user's copy of an app runs; the Spotify flow uses it, since a running Spotify started without `--force-renderer-accessibility` shows no tree. Waits and finds for a window by its title no longer count only page text, which broke the VS Code flows.
 * **New**: [How Mac tables and SwiftUI lists look to accessibility](/research/table-accessibility.md), from a spike on the fixture's new tables window.

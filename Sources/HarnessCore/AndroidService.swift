@@ -300,6 +300,43 @@ public enum AndroidService {
         return CGPoint(x: frame.midX, y: frame.midY)
     }
 
+    /// When the keyboard shows and its touch area covers where `target` would be tapped, hides it
+    /// with Back and finds `target` again, since the layout may move; nil when nothing covers it.
+    /// Gboard can claim the whole screen as its touch area while it shows (with stylus
+    /// handwriting on), which swallowed taps meant for the app.
+    static func uncover(_ target: RawNode, tree: RawNode, name: String, screen: Screen) async throws -> (tree: RawNode, target: RawNode, notice: Notice)? {
+        guard let frame = target.frame?.intersection(screen.frame), !frame.isNull else { return nil }
+        let point = CGPoint(x: frame.midX, y: frame.midY)
+        let state = (try? await ADB.shell(screen.serial, "dumpsys input_method | grep 'mInputShown='; dumpsys input | grep 'InputMethod, '; true")) ?? ""
+        guard let area = keyboardArea(in: state), area.contains(where: { $0.contains(point) }) else { return nil }
+        try await ADB.shell(screen.serial, "input keyevent KEYCODE_BACK")
+        try? await Task.sleep(for: .milliseconds(600))
+        let fresh = try await dump(screen)
+        let found = target.key.flatMap { key in first(in: fresh, where: { $0.key == key }) } ?? target
+        let notice = Notice(
+            kind: "keyboardHidden",
+            message: "The keyboard covered \(name), so it was hidden (Back) before the tap; taps there would have gone to the keyboard."
+        )
+        return (fresh, found, notice)
+    }
+
+    /// The keyboard's touch area from `dumpsys` output holding `mInputShown` and the input method
+    /// window's `touchableRegion`; nil when the keyboard isn't showing.
+    package static func keyboardArea(in output: String) -> [CGRect]? {
+        guard output.contains("mInputShown=true"), let range = output.range(of: "touchableRegion=") else { return nil }
+        let rest = output[range.upperBound...].prefix { $0 != "\n" }
+        let region = rest.range(of: ", ").map { rest[..<$0.lowerBound] } ?? rest
+        let numbers = region.split(whereSeparator: { !"0123456789-".contains($0) }).compactMap { Double($0) }
+        var rects: [CGRect] = []
+        var index = 0
+        while index + 3 < numbers.count {
+            let (left, top, right, bottom) = (numbers[index], numbers[index + 1], numbers[index + 2], numbers[index + 3])
+            if right > left, bottom > top { rects.append(CGRect(x: left, y: top, width: right - left, height: bottom - top)) }
+            index += 4
+        }
+        return rects.isEmpty ? nil : rects
+    }
+
     static func tap(_ point: CGPoint, screen: Screen) async throws {
         try await ADB.shell(screen.serial, "input tap \(Int(point.x)) \(Int(point.y))")
     }
@@ -325,6 +362,13 @@ public enum AndroidService {
             (tree, target) = try await bringIntoView(target, tree: tree, screen: screen)
         }
         var notices: [Notice] = []
+        let tapsFirst: Set<ElementAction> = [.setValue, .type, .key]
+        if [.press, .select, .focus].contains(params.action) || (tapsFirst.contains(params.action) && target.focused != true && (params.action != .key || params.element != nil)),
+           let uncovered = try await uncover(target, tree: tree, name: name, screen: screen) {
+            (tree, target) = (uncovered.tree, uncovered.target)
+            node = shaper.makeNode(target, visible: target.frame?.intersection(screen.frame))
+            notices.append(uncovered.notice)
+        }
         let performed: String
         switch params.action {
         case .paste:
