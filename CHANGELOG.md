@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.1.0
+
+Reading web pages and working with browser windows, from agents' feedback. Upgrade with
+`brew update && brew upgrade --cask otto-harness`; if Homebrew says the tap is untrusted,
+run `brew trust therogue76/tap` first.
+
+- **Read just the page.** `read --page` (`page: true` over MCP) reads only a browser
+  window's web content, without the browser's own controls. Highlighted words, such as
+  Gmail's search matches, now stay inside their sentence, and `find` lists a page's matches
+  in on-screen order ([#180](https://github.com/TheRogue76/otto-harness/issues/180)).
+- **Browser windows.** `launch --open` with a URL in a running browser says which window
+  and tab it opened in, and `launch -w` opens it in the window you name. `-w` (and MCP
+  `window`) also take part of a window's title. `launch` refuses when several copies of the
+  app are running, since macOS would pick which one opens the URL, and `tabs` waits for
+  the tab strip to settle before reading it
+  ([#182](https://github.com/TheRogue76/otto-harness/issues/182)).
+- **Fields that don't show the change.** When `type` or `paste` leaves the tree
+  unchanged, the field's own value decides: the result is confirmed when the field holds
+  the text, and unverifiable, with a suggestion to take a screenshot, when it can't be
+  read. A field outside the window `find` reads is noted
+  ([#183](https://github.com/TheRogue76/otto-harness/issues/183)).
+- **OCR positions.** Text found with OCR no longer shows up at @0,0 when Vision gives no
+  box for part of a line, and OCR lines are shown whole
+  ([#186](https://github.com/TheRogue76/otto-harness/issues/186)).
+
 ## 2.0.1
 
 Fixes from agents' feedback on using Otto day to day. Upgrade with `brew update && brew
