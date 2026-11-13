@@ -36,7 +36,7 @@ public enum OCRService {
         let candidates = (request.results ?? []).compactMap { observation in
             observation.topCandidates(1).first.map { (box: observation.boundingBox, text: $0) }
         }
-        let matches = candidates.compactMap { match(query, exact: exact, in: $0.text, size: size) }
+        let matches = candidates.compactMap { match(query, exact: exact, in: $0.text, lineBox: $0.box, size: size) }
         return (matches, inReadingOrder(candidates.map { ($0.box, $0.text.string) }))
     }
 
@@ -54,21 +54,27 @@ public enum OCRService {
         return rows.flatMap { row in row.sorted { $0.box.minX < $1.box.minX }.map(\.text) }
     }
 
-    static func match(_ query: String?, exact: Bool, in candidate: VNRecognizedText, size: CGSize) -> Found? {
+    static func match(_ query: String?, exact: Bool, in candidate: VNRecognizedText, lineBox: CGRect, size: CGSize) -> Found? {
         let line = candidate.string
+        func frame(_ range: Range<String.Index>) -> CGRect {
+            windowRect(usableBox((try? candidate.boundingBox(for: range))?.boundingBox, line: lineBox), size: size)
+        }
         guard let query, !query.isEmpty else {
-            return (try? candidate.boundingBox(for: line.startIndex..<line.endIndex)).map {
-                Found(text: line, line: line, frame: windowRect($0.boundingBox, size: size))
-            }
+            return Found(text: line, line: line, frame: frame(line.startIndex..<line.endIndex))
         }
         if exact {
-            guard line.compare(query, options: [.caseInsensitive]) == .orderedSame,
-                  let box = try? candidate.boundingBox(for: line.startIndex..<line.endIndex) else { return nil }
-            return Found(text: line, line: line, frame: windowRect(box.boundingBox, size: size))
+            guard line.compare(query, options: [.caseInsensitive]) == .orderedSame else { return nil }
+            return Found(text: line, line: line, frame: frame(line.startIndex..<line.endIndex))
         }
-        guard let range = line.range(of: query, options: [.caseInsensitive]),
-              let box = try? candidate.boundingBox(for: range) else { return nil }
-        return Found(text: String(line[range]), line: line, frame: windowRect(box.boundingBox, size: size))
+        guard let range = line.range(of: query, options: [.caseInsensitive]) else { return nil }
+        return Found(text: String(line[range]), line: line, frame: frame(range))
+    }
+
+    /// The box Vision gave for part of a line, or the whole line's box when it gave none or an
+    /// empty one, so every result has a place in the window.
+    static func usableBox(_ box: CGRect?, line: CGRect) -> CGRect {
+        guard let box, box.width > 0, box.height > 0 else { return line }
+        return box
     }
 
     /// A Vision box (normalized, origin at the bottom left) in window points (origin at the top left).

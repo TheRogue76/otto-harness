@@ -151,7 +151,11 @@ images):
   (accurate mode, no language correction) and returns each match with a
   click point. When the text is part of a longer line, the point is that
   text's own box, not the line's. Matches get refs `o1`, `o2`, … that
-  can't be pressed. Without text it lists every line read.
+  can't be pressed. Without text it lists every line read. Vision
+  sometimes gives no box, or an empty one, for part of a line, so the
+  line's own box stands in and no match comes back at @0,0; OCR lines are
+  printed whole, since there's no element `read` could give in full
+  ([#186](https://github.com/TheRogue76/otto-harness/issues/186)).
 - `click`/`hover`/`drag`/`scroll --ocr --text "Play"` act on that point,
   preferring a line that is exactly the text, and list the places instead
   of guessing when there are several. `press` and other accessibility
