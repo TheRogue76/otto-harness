@@ -20,8 +20,11 @@ package enum ActionEffect {
 
     package static func assess(step: Step, via: String, changed: Bool, notices: [String], checked: Bool) -> (effect: String, suggestion: String?) {
         guard checked else { return ("unverifiable", "The result wasn't checked; take a snapshot to see it.") }
-        if changed || notices.contains(where: ["windowOpened", "windowClosed", "pixelsOnly", "changedOutOfView"].contains) {
+        if changed || notices.contains(where: ["windowOpened", "windowClosed", "pixelsOnly", "changedOutOfView", "fieldHoldsText"].contains) {
             return ("confirmed", nil)
+        }
+        if notices.contains("fieldUnreadable") {
+            return ("unverifiable", "Nothing Otto can see changed, and it can't read this field's value, so it can't tell whether the text went in; take a screenshot to check.")
         }
         if notices.contains("backgroundUnconfirmed") {
             return ("unverifiable", "Nothing visible changed after the background click, and it wasn't repeated in case it worked out of sight. If it didn't take, repeat it with real=true (CLI --real).")

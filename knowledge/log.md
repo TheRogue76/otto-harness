@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: [Actions](/design/actions.md) and [Interface contract](/design/interface-contract.md): `type` and `paste` check the field's value when the tree shows no change.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md) and [Interface contract](/design/interface-contract.md): `launch --open` says where it opened and takes `-w`, windows can be named by title, and `tabs` waits for the strip to settle.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md): `read --page`, `find` in on-screen order in a page, and highlighted words kept in their sentence.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md): OCR matches fall back to their line's box and print whole.

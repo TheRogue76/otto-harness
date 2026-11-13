@@ -470,6 +470,9 @@ extension ActionService {
             result.settledMilliseconds = settledInBackground.settledMilliseconds
             result.notices += settledInBackground.notices
         }
+        if [.type, .paste].contains(params.action), params.diff, !window.isSimulator, target.raw.subrole != "AXSecureTextField", let text = params.value {
+            result.notices += fieldNotices(typed: text, target: target, window: window, changed: !result.changes.isEmpty || result.moreChanges > 0)
+        }
         if params.diff, !settle, settledInBackground == nil {
             result.effect = "confirmed"
         } else {
@@ -482,6 +485,35 @@ extension ActionService {
             await context.endTurn(menuTurn, holdingMenuOf: app.pid)
         }
         return result
+    }
+
+    /// What typing into a field showed when the window's tree didn't: the field's value holds the
+    /// text, or it can't be read; and whether the field is outside the tree `find` reads.
+    static func fieldNotices(typed text: String, target: ResolvedElement, window: WindowService.Window, changed: Bool) -> [Notice] {
+        var notices: [Notice] = []
+        var current = AX.element(target.element, "AXParent")
+        var inside = CFEqual(target.element, window.content)
+        var depth = 0
+        while !inside, let parent = current, depth < 100 {
+            if CFEqual(parent, window.content) || CFEqual(parent, window.element) { inside = true }
+            current = AX.element(parent, "AXParent")
+            depth += 1
+        }
+        if !inside {
+            notices.append(Notice(
+                kind: "outsideTree",
+                message: "The field that took the text isn't inside the window `find` and `snapshot` read (a sheet or popover macOS keeps apart, perhaps), so they can't see it; send text without naming a field to reach it, as here."
+            ))
+        }
+        guard !changed else { return notices }
+        if let value = AX.value(target.element) {
+            if value.contains(text) {
+                notices.append(Notice(kind: "fieldHoldsText", message: "Nothing else in the window changed, but the field's value now holds the text."))
+            }
+        } else {
+            notices.append(Notice(kind: "fieldUnreadable", message: "This field's value can't be read."))
+        }
+        return notices
     }
 
     /// The pid of the "Open and Save Panel Service (<app>)" process serving this app, if any.
