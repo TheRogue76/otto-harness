@@ -7,10 +7,19 @@ struct TargetOptions: ParsableArguments {
     @Option(name: .shortAndLong, help: "App name, bundle ID or pid; sim:<device> for an iOS Simulator; android:<device> for an Android emulator or phone.")
     var app: String
 
-    @Option(name: .shortAndLong, help: "Window ID from `windows`; defaults to the focused window.")
-    var window: UInt32?
+    @Option(name: .shortAndLong, help: "Window ID from `windows`, or part of the window's title; defaults to the focused window.")
+    var window: String?
 
-    var target: Target { Target(app: app, window: window) }
+    var target: Target { Target(app: app, window: window.flatMap(UInt32.init)) }
+
+    mutating func validate() throws {
+        guard let window, UInt32(window) == nil else { return }
+        do {
+            self.window = String(try WindowTitles.resolve(window, app: app, connection: try HarnessConnection.openAnnouncingPairing()))
+        } catch let error as RPCError {
+            throw ValidationError(error.message)
+        }
+    }
 }
 
 struct Windows: ParsableCommand {

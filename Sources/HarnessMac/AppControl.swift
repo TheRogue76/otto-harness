@@ -224,6 +224,13 @@ public enum AppControl {
             )
         }
 
+        if let running, let id = params.window {
+            let window = try WindowService.resolve(Target(app: "\(running.pid)", window: id), app: running)
+            _ = AX.set(window.element, "AXMain", kCFBooleanTrue)
+            _ = AX.set(window.element, "AXFocused", kCFBooleanTrue)
+        } else if params.window != nil {
+            throw RPCError(code: RPCErrorCode.invalidParams, message: "A window to open in only applies when \(params.app) is already running.")
+        }
         guard let url = appURL(for: params.app) else {
             throw RPCError(code: RPCErrorCode.failed, message: "Can't find an app called “\(params.app)”. Give its name as shown in /Applications, its bundle ID, or a path to the .app.")
         }
@@ -280,6 +287,9 @@ public enum AppControl {
                 break
             }
             try? await Task.sleep(for: .milliseconds(200))
+        }
+        if running != nil, files.contains(where: { !$0.isFileURL }), let opened = await TabsService.opened(by: app) {
+            notices.append(opened)
         }
         return LaunchMethod.Result(
             app: app, windows: windows, alreadyRunning: running != nil,

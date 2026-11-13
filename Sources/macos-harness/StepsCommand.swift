@@ -34,13 +34,13 @@ struct Steps: ParsableCommand {
         let text = steps == "-" ? String(decoding: FileHandle.standardInput.readDataToEndOfFile(), as: UTF8.self) : steps
         let flow: Flow
         do {
-            flow = try Batch.flow(yaml: text, app: target.app, window: target.window)
+            flow = try Batch.flow(yaml: text, app: target.app, window: target.target.window)
         } catch let error as FlowError {
             throw ValidationError(error.description)
         }
         try reportingErrors(json: output.json) {
             let connection = try HarnessConnection.openAnnouncingPairing()
-            let result = Batch.run(flow, observe: observation, window: target.window, maxNodes: maxNodes, caller: connection)
+            let result = Batch.run(flow, observe: observation, window: target.target.window, maxNodes: maxNodes, caller: connection)
             if output.json {
                 try Output.json(StepsReport(steps: result.flow, changes: result.changes, snapshot: result.snapshot))
             } else {

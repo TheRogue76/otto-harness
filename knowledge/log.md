@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md) and [Interface contract](/design/interface-contract.md): `launch --open` says where it opened and takes `-w`, windows can be named by title, and `tabs` waits for the strip to settle.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md): `read --page`, `find` in on-screen order in a page, and highlighted words kept in their sentence.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md): OCR matches fall back to their line's box and print whole.
 * **Update**: 2.0.1 released with #178, #179 and #184; the next items, for 2.1, are #180, #182, #183 and #186.

@@ -232,7 +232,10 @@ public enum MCPTools {
     }
 
     private static let app = property("string", "App name, bundle ID or pid; sim:<device> for an iOS Simulator (UDID, name or booted); android:<device> for an Android emulator or phone (serial, name or booted).")
-    private static let window = property("integer", "Window ID from `windows`; defaults to the focused window.")
+    private static let window: JSONValue = .object([
+        "type": .array([.string("integer"), .string("string")]),
+        "description": .string("Window ID from `windows`, or part of the window's title; defaults to the focused window."),
+    ])
     private static let diffProperty = property("boolean", "Report what changed (default true).")
     private static let elementProperties: [String: JSONValue] = [
         "ref": property("string", "Ref from snapshot or find, e.g. k12."),
@@ -374,7 +377,8 @@ public enum MCPTools {
               "width": property("number", "Width for resize."), "height": property("number", "Height for resize.")],
              required: ["app", "action"]),
         tool("launch", "Launch an app", "Launch an app in the background (unless activate) and wait for its first window; optionally open files with it.",
-             ["app": property("string", "App name, bundle ID or path to an .app."), "open": stringList("Files or URLs to open with it; a running browser opens a URL in a new tab."),
+             ["app": property("string", "App name, bundle ID or path to an .app."), "open": stringList("Files or URLs to open with it; a running browser opens a URL in a new tab, and says which window and tab."),
+              "window": window,
               "args": stringList("Launch arguments."), "env": .object(["type": .string("object"), "description": .string("Environment variables."), "additionalProperties": .object(["type": .string("string")])]),
               "activate": property("boolean", "Bring it to the front."), "timeout": property("number", "Seconds to wait for a window (default 15)."),
               "new_instance": property("boolean", "Start another copy even if it's running; target it by the pid in the result."),
@@ -452,6 +456,11 @@ public enum MCPTools {
     ]
 
     static func call(_ tool: String, _ arguments: MCPArguments, connection: HarnessConnection) throws -> [JSONValue] {
+        var arguments = arguments
+        if case .object(var object) = arguments.raw, case .string(let title)? = object["window"], let app = arguments.string("app") {
+            object["window"] = .number(Double(try WindowTitles.resolve(title, app: app, connection: connection)))
+            arguments.raw = .object(object)
+        }
         switch tool {
         case "doctor":
             let report = try connection.call(DoctorMethod.self, .init(), timeout: 10)
@@ -562,7 +571,7 @@ public enum MCPTools {
                 activate: arguments.bool("activate") ?? false, timeout: arguments.number("timeout") ?? 15,
                 newInstance: arguments.bool("new_instance"), appearance: arguments.string("appearance"),
                 language: arguments.string("language"), locale: arguments.string("locale"),
-                allowIdleWhenCovered: arguments.bool("allow_idle_when_covered")
+                allowIdleWhenCovered: arguments.bool("allow_idle_when_covered"), window: arguments.int("window").map { UInt32($0) }
             ))
             return [text(Render.launch(result))]
         case "quit":
