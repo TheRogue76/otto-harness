@@ -105,13 +105,14 @@ No parameters.
 
 ## read
 
-**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read.
+**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read, or with page=true only a browser window's web page, without the browser's own controls.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `app` (required) | string | App name, bundle ID or pid; sim:\<device> for an iOS Simulator (UDID, name or booted); android:\<device> for an Android emulator or phone (serial, name or booted). |
 | `exact` | boolean | text must match the whole label, value or identifier. |
 | `id` | string | Instead of a ref: exact accessibility identifier. |
+| `page` | boolean | Read only the web page in a browser window, without the browser's own controls. |
 | `ref` | string | Ref from snapshot or find, e.g. k12. |
 | `role` | string | Instead of a ref: role such as group, link, textarea. |
 | `text` | string | Instead of a ref: match label, value or identifier containing this. |

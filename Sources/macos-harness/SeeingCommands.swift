@@ -202,7 +202,7 @@ struct Tabs: ParsableCommand {
 struct Read: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Read an element in full: its whole label and value, the text inside it, and its links.",
-        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window."
+        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window; --page reads only a browser window's web page."
     )
 
     @Argument(help: "Ref from snapshot or find, e.g. k12.")
@@ -222,13 +222,16 @@ struct Read: ParsableCommand {
     @Flag(help: "--text must match the whole label, value or identifier.")
     var exact = false
 
+    @Flag(help: "Read only the web page in a browser window, without the browser's own controls.")
+    var page = false
+
     @OptionGroup var output: OutputOptions
 
     func run() throws {
         try reportingErrors(json: output.json) {
             let selector = ElementSelector(ref: ref, text: text, role: role, identifier: identifier, exact: exact)
             let result = try HarnessConnection.openAnnouncingPairing().call(
-                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector)
+                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector, page: page ? true : nil)
             )
             output.json ? try Output.json(result) : print(Render.read(result))
         }

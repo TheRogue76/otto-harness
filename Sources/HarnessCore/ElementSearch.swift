@@ -96,6 +96,21 @@ public enum ElementSearch {
 
     /// Hits split by where they are in a browser window: inside `page`, or in the browser's own
     /// toolbar, tabs and address bar.
+    /// Hits in the order they appear on screen: visible ones top to bottom, left to right within a
+    /// line (tops within 4 points of each other), then those out of view in tree order.
+    public static func onScreenOrder(_ hits: [Hit]) -> [Hit] {
+        let shown = hits.compactMap { hit in hit.visible.map { (hit: hit, frame: $0) } }.sorted { $0.frame.minY < $1.frame.minY }
+        var rows: [[(hit: Hit, frame: CGRect)]] = []
+        for item in shown {
+            if let top = rows.last?.first?.frame.minY, item.frame.minY - top <= 4 {
+                rows[rows.count - 1].append(item)
+            } else {
+                rows.append([item])
+            }
+        }
+        return rows.flatMap { $0.sorted { $0.frame.minX < $1.frame.minX }.map(\.hit) } + hits.filter { $0.visible == nil }
+    }
+
     public static func split(_ hits: [Hit], page: RawNode) -> (page: [Hit], toolbar: [Hit]) {
         let inPage = keys(in: page)
         let page = hits.filter { $0.raw.key.map(inPage.contains) ?? false }

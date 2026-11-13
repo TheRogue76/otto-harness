@@ -287,13 +287,14 @@ public enum MCPTools {
         tool("tabs", "List a browser's tabs", "A browser window's tabs in order, each a ref with its title and which one is showing, and the address of the page showing. Switch tabs with act press on a tab's ref: a tab keeps its ref while it's open, however tabs move. To open a page in a new tab, use launch with open set to its URL.",
              ["app": app, "window": window],
              required: ["app"], readOnly: true),
-        tool("read", "Read an element in full", "One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read.",
+        tool("read", "Read an element in full", "One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read, or with page=true only a browser window's web page, without the browser's own controls.",
              ["app": app, "window": window,
               "ref": property("string", "Ref from snapshot or find, e.g. k12."),
               "text": property("string", "Instead of a ref: match label, value or identifier containing this."),
               "role": property("string", "Instead of a ref: role such as group, link, textarea."),
               "id": property("string", "Instead of a ref: exact accessibility identifier."),
-              "exact": property("boolean", "text must match the whole label, value or identifier.")],
+              "exact": property("boolean", "text must match the whole label, value or identifier."),
+              "page": property("boolean", "Read only the web page in a browser window, without the browser's own controls.")],
              required: ["app"], readOnly: true),
         tool("collect", "Collect a list's items", "Every item of a long list that shows only part of itself at a time (a web timeline or feed, a long table, an iOS or Android list), each once, with its text (as read gives it) and its links, as refs. Name the items with role (article for a web page's posts, row, cell), text or id. It scrolls by bringing the last item into view, or a background scroll, never the real mouse, and stops at max, at the item containing until, at the end of the list, or after max_seconds; then continue=true carries on without repeating items. key tells items apart by a link instead of their text (e.g. /status/ for posts whose counts change).",
              ["app": app, "window": window,
@@ -481,7 +482,7 @@ public enum MCPTools {
         case "tabs":
             return [text(Render.tabs(try connection.call(TabsMethod.self, .init(target: try arguments.target))))]
         case "read":
-            return [text(Render.read(try connection.call(ReadMethod.self, .init(target: try arguments.target, element: arguments.selector))))]
+            return [text(Render.read(try connection.call(ReadMethod.self, .init(target: try arguments.target, element: arguments.selector, page: arguments.bool("page")))))]
         case "collect":
             let item = ElementSelector(
                 text: arguments.string("text"), role: arguments.string("role"), identifier: arguments.string("id"), exact: arguments.bool("exact") ?? false

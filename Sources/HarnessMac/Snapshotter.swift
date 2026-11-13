@@ -64,7 +64,7 @@ public enum Snapshotter {
         if params.text != nil, let page = ElementSearch.page(in: raw) {
             let wider = ElementSearch.search(raw, for: selector, clip: window.space.frame, limit: params.limit + 40)
             let split = ElementSearch.split(wider, page: page)
-            hits = Array((split.page + split.toolbar).prefix(params.limit))
+            hits = Array((ElementSearch.onScreenOrder(split.page) + split.toolbar).prefix(params.limit))
             if split.page.isEmpty, !split.toolbar.isEmpty {
                 notices.append(Notice(
                     kind: "toolbarOnly",

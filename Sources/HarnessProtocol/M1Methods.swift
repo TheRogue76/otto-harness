@@ -294,10 +294,13 @@ public enum ReadMethod: RPCMethod {
         public var target: Target
         /// The element to read; nil reads the window.
         public var element: ElementSelector?
+        /// Reads only the web page in a browser window, without the browser's own controls.
+        public var page: Bool?
 
-        public init(target: Target, element: ElementSelector? = nil) {
+        public init(target: Target, element: ElementSelector? = nil, page: Bool? = nil) {
             self.target = target
             self.element = element
+            self.page = page
         }
     }
 

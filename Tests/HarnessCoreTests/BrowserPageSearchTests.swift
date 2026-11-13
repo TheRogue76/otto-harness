@@ -56,3 +56,21 @@ struct BrowserTabsTests {
         #expect(ElementSearch.page(in: browser())?.url == "https://dash.example.com/dns")
     }
 }
+
+@Suite struct OnScreenOrderTests {
+    private func hit(_ name: String, _ frame: CGRect?) -> ElementSearch.Hit {
+        ElementSearch.Hit(raw: RawNode(role: "AXStaticText", value: name), path: [], visible: frame)
+    }
+
+    @Test func pageHitsComeTopToBottomThenLeftToRight() {
+        let hits = [
+            hit("sidebar label", CGRect(x: 0, y: 400, width: 80, height: 16)),
+            hit("offscreen", nil),
+            hit("second word", CGRect(x: 300, y: 101, width: 60, height: 16)),
+            hit("first word", CGRect(x: 100, y: 100, width: 60, height: 16)),
+            hit("heading", CGRect(x: 100, y: 40, width: 200, height: 24)),
+        ]
+        let names = ElementSearch.onScreenOrder(hits).map { $0.raw.value ?? "" }
+        #expect(names == ["heading", "first word", "second word", "sidebar label", "offscreen"])
+    }
+}

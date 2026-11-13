@@ -65,6 +65,16 @@ text is only in the toolbar, tabs or address bar, the timeout says so with a
 same notice when every match is in the toolbar. Selectors by role or id
 search the whole window as before.
 
+Reading a page took agents many calls
+([#180](https://github.com/TheRogue76/otto-harness/issues/180)), so:
+`read --page` (`page: true` over MCP) reads just the window's first
+`AXWebArea`, without the browser's controls; `find` orders the page's
+matches as they appear on screen (rows top to bottom, tops within 4
+points making one row, left to right), since web trees often differ from
+what's shown; and `read` runs a group with no label around one line of
+inline text into its neighbours' line, since Gmail wraps highlighted
+search words in such groups and a sentence came back in four pieces.
+
 Once a browser's page has shown its elements, the helper looks at its web
 area again at most every 3 s, since an agent found the page empty again
 later the same day in a browser it hadn't started with the flag: Chromium

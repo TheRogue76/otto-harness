@@ -279,9 +279,9 @@ OVERVIEW: Read an element in full: its whole label and value, the text inside it
 
 Snapshots and find shorten long labels and values; read gives them whole, with all the text inside
 the element in reading order (a post's author, text and counts, say) and where each link inside it
-goes. Without an element it reads the whole window.
+goes. Without an element it reads the whole window; --page reads only a browser window's web page.
 
-USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--json]
+USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--page] [--json]
 
 ARGUMENTS:
   <ref>                   Ref from snapshot or find, e.g. k12.
@@ -294,6 +294,8 @@ OPTIONS:
   --role <role>           Role, e.g. group, link, textarea.
   --id <id>               Exact accessibility identifier.
   --exact                 --text must match the whole label, value or identifier.
+  --page                  Read only the web page in a browser window, without the browser's own
+                          controls.
   --json                  Print JSON instead of text.
   --version               Show the version.
   -h, --help              Show help information.
