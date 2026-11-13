@@ -34,6 +34,7 @@ struct ReadTextTests {
         ])
         #expect(ReadText.text(of: paragraph) == "Your sales are configured in the App Store.")
         let tall = RawNode(role: "AXGroup", frame: CGRect(x: 0, y: 0, width: 400, height: 80), children: [piece("A heading", x: 0)])
+        #expect(!ReadText.isInline(RawNode(role: "AXGroup", children: [RawNode(role: "AXStaticText", value: "No frames")])))
         #expect(!ReadText.isInline(tall))
     }
 

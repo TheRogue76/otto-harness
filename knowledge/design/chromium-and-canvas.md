@@ -74,6 +74,8 @@ points making one row, left to right), since web trees often differ from
 what's shown; and `read` runs a group with no label around one line of
 inline text into its neighbours' line, since Gmail wraps highlighted
 search words in such groups and a sentence came back in four pieces.
+Only groups whose frames show one line count: without frames a group
+might be a block, like a feed post's text, which must keep its own line.
 
 Once a browser's page has shown its elements, the helper looks at its web
 area again at most every 3 s, since an agent found the page empty again

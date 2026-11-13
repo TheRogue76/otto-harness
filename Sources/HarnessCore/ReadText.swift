@@ -52,15 +52,15 @@ package enum ReadText {
     }
 
     /// Whether `node`'s text runs on in its neighbours' line: inline roles, and a group with no label
-    /// of its own around inline text on one line, as web pages make for highlighted words.
+    /// of its own around inline text whose frames show one line, as web pages make for highlighted words.
     package static func isInline(_ node: RawNode) -> Bool {
         if inlineRoles.contains(node.role) { return true }
         guard node.role == "AXGroup", node.label == nil, !node.children.isEmpty,
               node.children.allSatisfy({ inlineRoles.contains($0.role) && $0.children.isEmpty }) else { return false }
-        if let height = node.frame?.height, let tallest = node.children.compactMap({ $0.frame?.height }).max(), tallest > 0 {
-            return height <= tallest * 1.6
+        guard let height = node.frame?.height, let tallest = node.children.compactMap({ $0.frame?.height }).max(), tallest > 0 else {
+            return false
         }
-        return true
+        return height <= tallest * 1.6
     }
 
     /// The element's own text: what's typed into an input, a static text's text, otherwise its label.
