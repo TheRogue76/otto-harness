@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.0.1
+
+Fixes from agents' feedback on using Otto day to day. Upgrade with `brew update && brew
+upgrade --cask otto-harness`; if Homebrew says the tap is untrusted, run `brew trust
+therogue76/tap` first.
+
+- **`press` no longer clicks what covers an element.** When an element has no
+  accessibility action, `press` falls back to a click; it now checks what is under that
+  point first and refuses, naming what covers the element, instead of clicking it
+  ([#178](https://github.com/TheRogue76/otto-harness/issues/178)).
+- **Keys go to the window you name.** `key`, typing without a field and `paste` with a
+  window named bring that window forward in its app first, or refuse, instead of sending
+  the keys to the app's other window. `window activate` also works in apps that refuse to
+  raise windows through accessibility
+  ([#179](https://github.com/TheRogue76/otto-harness/issues/179)).
+- **Command-line rough edges.** `otto act press k12` runs `press` as the MCP tool would,
+  an unknown command names the nearest one, `select` says when a row didn't become
+  selected and suggests `click`, `act` with `type` takes `text` alone as the text, and
+  `read` on a scrolling list points to `collect`
+  ([#184](https://github.com/TheRogue76/otto-harness/issues/184)).
+
 ## 2.0.0
 
 macOS Harness is now **Otto**, and runs on Linux too. On the Mac, `brew update && brew
