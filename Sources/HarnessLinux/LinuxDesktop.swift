@@ -232,7 +232,7 @@ public enum LinuxDesktop {
             }
             window = chosen
         }
-        let placed = Compositors.match((try? await Compositors.current()?.windows()) ?? [], pid: app.pid, title: window.name)
+        let placed = await Compositors.placed(pid: app.pid, title: window.name)
         let info = await info(window, app: app, on: connection, placed: placed)
         if let placed { WindowMarks.remember(info.id, as: placed) }
         let (grown, notice) = await HiddenTrees.prepare(app, window: window, items: items, on: connection)

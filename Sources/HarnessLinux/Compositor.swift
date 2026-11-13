@@ -302,12 +302,29 @@ enum Compositors {
         )
     }
 
-    /// The compositor window an AT-SPI window is: the app's only window, or the one with its
-    /// title.
+    /// The compositor window an AT-SPI window is: the app's only window, the one with its title,
+    /// the focused one, one whose title holds the other's, or the app's only window of a usable
+    /// size when the others are popups and tooltips.
     static func match(_ windows: [CompositorWindow], pid: Int32?, title: String) -> CompositorWindow? {
         let mine = windows.filter { pid != nil && $0.pid == pid }
         if mine.count == 1 { return mine[0] }
-        return mine.first { $0.title == title } ?? mine.first { $0.focused }
+        if let found = mine.first(where: { $0.title == title }) ?? mine.first(where: \.focused) { return found }
+        if !title.isEmpty, let found = mine.first(where: { !$0.title.isEmpty && ($0.title.contains(title) || title.contains($0.title)) }) {
+            return found
+        }
+        let sized = mine.filter { !$0.minimized && $0.frame.width >= 100 && $0.frame.height >= 60 }
+        return sized.count == 1 ? sized[0] : nil
+    }
+
+    /// The compositor window an AT-SPI window is, asking up to three times 200 ms apart, since
+    /// KWin's window list sometimes misses a window for a moment; nil without a compositor.
+    static func placed(pid: Int32?, title: String) async -> CompositorWindow? {
+        guard let compositor = await current() else { return nil }
+        for attempt in 0..<3 {
+            if attempt > 0 { try? await Task.sleep(for: .milliseconds(200)) }
+            if let found = match((try? await compositor.windows()) ?? [], pid: pid, title: title) { return found }
+        }
+        return nil
     }
 }
 
