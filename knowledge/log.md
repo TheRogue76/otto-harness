@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: 2.0.1 released with #178, #179 and #184; the next items, for 2.1, are #180, #182, #183 and #186.
 * **Update**: [Interface contract](/design/interface-contract.md) and [Actions](/design/actions.md): `otto act` runs the action's command, unknown commands suggest the nearest, `select` checks the row became selected, `act type` takes `text` alone as the text, and `read` points scrolling lists to `collect`.
 * **Update**: [Actions](/design/actions.md) and [Interface contract](/design/interface-contract.md): keys aimed at a named window make it the app's focused window first, or are refused; `window activate` falls back to activating the app.
 * **Update**: [Actions](/design/actions.md): `press` hit-tests before falling back to a click, and refuses when something else covers the element.

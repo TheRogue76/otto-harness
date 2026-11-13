@@ -9,7 +9,8 @@ M4 (first public release via Homebrew), M5 (flows, recording, CI), M6
 (Electron, Chromium and canvas apps), M8 (iOS Simulator targets) and M9
 (Android targets), M10 (several agents at once) and M11 (1.0) are built; M7
 (VM mode) was dropped. 2.0.0, the rename to Otto with Linux as its headline,
-was released on 6 November 2026 (see the [roadmap](knowledge/plan/roadmap.md)).
+was released on 6 November 2026, and 2.0.1 with fixes from agents' feedback on 13
+November (see the [roadmap](knowledge/plan/roadmap.md)).
 CLI: `doctor`, `apps`, `windows`, `snapshot`, `find`, `read`, `tabs`, `collect`,
 `screenshot`, `menu`, `press`, `set-value`, `type`, `paste`, `key`, `focus`,
 `select`, `scroll-to`, `increment`, `decrement`, `click`, `hover`, `drag`,
