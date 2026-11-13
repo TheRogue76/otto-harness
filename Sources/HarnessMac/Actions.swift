@@ -217,6 +217,12 @@ extension ActionService {
                 if target.raw.role == "AXMenuItem" { await Settle.waitForMenuToClose(target.element) }
             } else if let visible = target.visible {
                 let point = CGPoint(x: visible.midX, y: visible.midY)
+                if let cover = ClickTarget.cover(at: point, of: target.element, pid: app.pid) {
+                    throw RPCError(
+                        code: RPCErrorCode.failed,
+                        message: "\(name) has no accessibility action, and \(ClickTarget.describe(cover)) covers it where it would be clicked, so nothing was pressed. Close or move what covers it, or press that instead if it's what you meant."
+                    )
+                }
                 let gesture = BackgroundInput.Gesture.click(count: 1, button: .left)
                 if let off = BackgroundInput.turnedOffNotice(gesture, at: point, in: window) {
                     notices.append(off)

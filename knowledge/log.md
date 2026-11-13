@@ -1,5 +1,9 @@
 # Knowledge log
 
+## 2026-11-13
+
+* **Update**: [Actions](/design/actions.md): `press` hit-tests before falling back to a click, and refuses when something else covers the element.
+
 ## 2026-11-07
 
 * **Update**: [Control Tower](/design/ui-control-tower.md): the two design canvases' links point at the owner's personal account, where they moved on 2026-11-06.
