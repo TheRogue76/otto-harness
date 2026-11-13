@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: [Actions](/design/actions.md) and [Interface contract](/design/interface-contract.md): keys aimed at a named window make it the app's focused window first, or are refused; `window activate` falls back to activating the app.
 * **Update**: [Actions](/design/actions.md): `press` hit-tests before falling back to a click, and refuses when something else covers the element.
 
 ## 2026-11-07

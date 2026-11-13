@@ -349,6 +349,7 @@ extension ActionService {
         case .type:
             let text = try required(params.value, "type needs text")
             if params.element == nil {
+                if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                 try await checkKeyWindow(of: app, context: context, sending: "Typing without a field")
             }
             if typeThroughAX(text, into: target) {
@@ -383,6 +384,7 @@ extension ActionService {
                     if window.info.hasSheet, let panel = await panelService(for: app) {
                         post(combo, to: panel)
                     } else {
+                        if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                         try await checkKeyWindow(of: app, context: context, sending: "The paste")
                         post(combo, to: app.pid)
                     }
@@ -415,12 +417,13 @@ extension ActionService {
                 post(combo, to: panel)
                 notices.append(Notice(kind: "panel", message: "A file panel is open, so the keys went to its process."))
             } else {
+                if let notice = try await focusNamedWindow(window, of: app, named: params.target.window != nil) { notices.append(notice) }
                 try await checkKeyWindow(of: app, context: context, sending: combo.display)
                 post(combo, to: app.pid)
             }
             via = "background keys"
             performed = "sent \(combo.display) to \(app.name)"
-            if !window.info.focused, !window.info.hasSheet {
+            if params.target.window == nil, !window.info.focused, !window.info.hasSheet {
                 notices.append(Notice(kind: "keyWindow", message: "Keys go to \(app.name)'s focused window, which isn't window \(window.info.id) “\(window.info.title)”."))
             }
             let frontmost = await AppControl.frontmostPID()
@@ -590,6 +593,24 @@ extension ActionService {
             Thread.sleep(forTimeInterval: 0.04)
         }
         return AX.value(target.element) != before
+    }
+
+    /// Makes a named window the app's focused window before keys are posted to the app, since
+    /// background keys go to its focused window; refuses when it can't, so they don't land elsewhere.
+    static func focusNamedWindow(_ window: WindowService.Window, of app: AppRef, named: Bool) async throws -> Notice? {
+        guard named, !window.info.hasSheet, WindowService.focusedWindowID(of: app) != window.info.id else { return nil }
+        _ = AX.set(window.element, "AXMain", kCFBooleanTrue)
+        _ = AX.set(window.element, "AXFocused", kCFBooleanTrue)
+        for _ in 0..<10 {
+            if WindowService.focusedWindowID(of: app) == window.info.id {
+                return Notice(kind: "keyWindow", message: "Made window \(window.info.id) “\(window.info.title)” \(app.name)'s focused window first, since keys go to its focused window.")
+            }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        throw RPCError(
+            code: RPCErrorCode.failed,
+            message: "Keys go to \(app.name)'s focused window, and window \(window.info.id) “\(window.info.title)” couldn't be made its focused window, so nothing was sent. Run `window activate` on it first, or type into a named field."
+        )
     }
 
     /// Refuses keystrokes that would land in a window another agent session is working in:

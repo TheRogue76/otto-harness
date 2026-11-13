@@ -117,7 +117,7 @@ Whether the action's result was seen ([actions](/design/actions.md)):
 | `launchArgumentsIgnored` | launch | The app was already running, so launch arguments, environment and presets weren't applied |
 | `activated` | action | The app was brought to the front |
 | `raisedByFocus` | action | The window was focused because the app can't raise it |
-| `keyWindow` | action | Keys went to another window of the app |
+| `keyWindow` | action | The named window was made the app's focused window before keys went to it, or (with no window named) keys went to another window of the app |
 | `panel` | action | Keys went to an open file panel's process |
 | `editing` | action | A text field is still being edited |
 | `unconfirmed` | action | The app didn't confirm the action |

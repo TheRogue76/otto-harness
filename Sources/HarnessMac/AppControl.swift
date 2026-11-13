@@ -119,6 +119,11 @@ public enum AppControl {
                 try ActionService.check(raised, doing: "raise \(name)", notices: &notices)
             case .focusInstead:
                 _ = AX.set(element, "AXFocused", kCFBooleanTrue)
+                if !(await isInFront(window.info.id, of: app)) {
+                    await MainActor.run { _ = NSRunningApplication(processIdentifier: app.pid)?.activate() }
+                    _ = AX.set(element, "AXMain", kCFBooleanTrue)
+                    _ = AX.set(element, "AXFocused", kCFBooleanTrue)
+                }
                 guard await isInFront(window.info.id, of: app) else {
                     try ActionService.check(raised, doing: "raise \(name)", notices: &notices)
                     break
