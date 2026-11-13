@@ -21,36 +21,92 @@ public struct ElementKey: Hashable, @unchecked Sendable {
 
 /// Reads AX subtrees within node, depth and time limits.
 public struct AXReader {
+    /// What a read does with the rows of a table or outline that are scrolled out of view.
+    public enum RowsOutOfView: Sendable {
+        /// Reads them in their place, like any other element.
+        case read
+        /// Reads them after everything else, while the limits allow, so a long table doesn't
+        /// leave the rest of the window unread.
+        case last
+        /// Leaves them out and counts them in `rowsOutOfView`.
+        case skip
+    }
+
     public var maxNodes: Int
     public var maxDepth: Int
     public var deadline: Date
     /// Longest value kept, in characters; longer ones are cut and end in "…".
     public var valueLimit: Int
+    public var rowsOutOfView: RowsOutOfView
 
-    public init(maxNodes: Int = 4000, maxDepth: Int = 60, timeBudget: TimeInterval = 3, valueLimit: Int = 300) {
+    public init(maxNodes: Int = 4000, maxDepth: Int = 60, timeBudget: TimeInterval = 3, valueLimit: Int = 300, rowsOutOfView: RowsOutOfView = .last) {
         self.maxNodes = maxNodes
         self.maxDepth = maxDepth
         self.deadline = Date().addingTimeInterval(timeBudget)
         self.valueLimit = valueLimit
+        self.rowsOutOfView = rowsOutOfView
     }
 
     private static let attributeNames = [
         "AXRole", "AXSubrole", "AXTitle", "AXDescription", "AXPlaceholderValue", "AXValue",
-        "AXIdentifier", "AXEnabled", "AXFocused", "AXSelected", "AXPosition", "AXSize", "AXChildren", "AXURL",
+        "AXIdentifier", "AXEnabled", "AXFocused", "AXSelected", "AXPosition", "AXSize", "AXChildren", "AXURL", "AXIndex",
     ]
     private static let windowButtonAttributes = ["AXCloseButton", "AXMinimizeButton", "AXZoomButton", "AXFullScreenButton"]
+    /// Fewest rows a table needs before its rows out of view are read last or left out.
+    static let longTable = 40
 
-    /// Nodes read so far in one read.
+    /// A table's rows out of view, put off until the rest of the tree is read.
+    private struct LaterRows {
+        var path: [Int]
+        var depth: Int
+        var before: [AXUIElement]
+        var beforeAt: Int
+        var after: [AXUIElement]
+        var afterAt: Int
+    }
+
+    /// Nodes read so far in one read, and the rows put off for later.
     private final class Budget {
         var nodes = 0
+        var later: [LaterRows] = []
     }
 
     public func read(_ element: AXUIElement) -> RawNode {
         let budget = Budget()
-        return read(element, depth: 0, budget: budget)
+        var root = read(element, depth: 0, path: [], budget: budget)
+        for rows in budget.later {
+            root.update(at: rows.path) { table in
+                let after = readRows(rows.after, depth: rows.depth, budget: budget)
+                let before = readRows(rows.before, depth: rows.depth, budget: budget)
+                table.children.insert(contentsOf: after, at: min(rows.afterAt, table.children.count))
+                table.children.insert(contentsOf: before, at: min(rows.beforeAt, table.children.count))
+                table.unread += rows.before.count + rows.after.count - before.count - after.count
+            }
+        }
+        return root
     }
 
-    private func read(_ element: AXUIElement, depth: Int, budget: Budget) -> RawNode {
+    private func readRows(_ rows: [AXUIElement], depth: Int, budget: Budget) -> [RawNode] {
+        var reader = self
+        reader.rowsOutOfView = .read
+        var read: [RawNode] = []
+        for row in rows {
+            guard budget.nodes < maxNodes, Date() <= deadline else { break }
+            read.append(reader.read(row, depth: depth, path: [], budget: budget))
+        }
+        return read
+    }
+
+    /// The rows of a long table or outline that are out of view; empty for anything else.
+    private func rowsOutOfView(of element: AXUIElement, role: String, children: [AXUIElement]) -> Set<ElementKey> {
+        guard rowsOutOfView != .read, role == "AXTable" || role == "AXOutline", children.count >= Self.longTable else { return [] }
+        let rows = AX.elements(element, "AXRows")
+        guard rows.count >= Self.longTable else { return [] }
+        let visible = Set(AX.elements(element, "AXVisibleRows").map(ElementKey.init))
+        return Set(rows.map(ElementKey.init)).subtracting(visible)
+    }
+
+    private func read(_ element: AXUIElement, depth: Int, path: [Int], budget: Budget) -> RawNode {
         budget.nodes += 1
         var values: CFArray?
         AXUIElementCopyMultipleAttributeValues(element, Self.attributeNames as CFArray, AXCopyMultipleAttributeOptions(), &values)
@@ -80,21 +136,49 @@ public struct AXReader {
             actions: AX.actions(element),
             frame: Self.frame(position: at(10), size: at(11))
         )
+        if node.role == "AXRow" { node.index = (at(14) as? NSNumber)?.intValue }
 
         let children = (at(12) as? [AXUIElement]) ?? []
         guard depth < maxDepth else {
             node.unread = children.count
             return node
         }
+        let outOfView = rowsOutOfView(of: element, role: node.role, children: children)
+        var later = LaterRows(path: path, depth: depth + 1, before: [], beforeAt: 0, after: [], afterAt: 0)
+        var seenVisibleRow = false
         for (index, child) in children.enumerated() {
+            if !outOfView.isEmpty {
+                if outOfView.contains(ElementKey(child)) {
+                    if seenVisibleRow {
+                        if later.after.isEmpty { later.afterAt = node.children.count }
+                        later.after.append(child)
+                    } else {
+                        later.before.append(child)
+                    }
+                    continue
+                }
+                if !seenVisibleRow, AX.role(child) == "AXRow" {
+                    seenVisibleRow = true
+                    later.beforeAt = node.children.count
+                }
+            }
             if budget.nodes >= maxNodes || Date() > deadline {
-                let rest = Array(children[index...])
+                let rest = children[index...].filter { !outOfView.contains(ElementKey($0)) }
                 let buttons = node.role == "AXWindow" ? Self.windowButtons(of: element, among: rest) : []
-                node.children += buttons.map { read($0, depth: depth + 1, budget: budget) }
+                node.children += buttons.map { read($0, depth: depth + 1, path: path + [node.children.count], budget: budget) }
                 node.unread = rest.count - buttons.count
                 break
             }
-            node.children.append(read(child, depth: depth + 1, budget: budget))
+            node.children.append(read(child, depth: depth + 1, path: path + [node.children.count], budget: budget))
+        }
+        if !outOfView.isEmpty {
+            if !seenVisibleRow { later.beforeAt = node.children.count }
+            if later.after.isEmpty { later.afterAt = node.children.count }
+            switch rowsOutOfView {
+            case .skip: node.rowsOutOfView = outOfView.count
+            case .last: budget.later.append(later)
+            case .read: break
+            }
         }
         return node
     }

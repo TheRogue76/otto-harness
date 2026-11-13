@@ -19,6 +19,7 @@ public enum Spikes {
         axperform <app> <id> <act>  S7: perform an AX action on the first element with an identifier, description or title
         simfocus <app>              S7: what has keyboard focus in Device Hub, then focus the simulator's screen
         axattrs <app> <role>        S7: every attribute and value of the elements with a role
+        axtable <app> [row…]        the tables and outlines in an app's windows: rows, visible rows, columns, headers, and how long each takes; the text of the rows asked for
         appattrs <app>              the app element's attributes, and the children of its menu bars
         corners <app>               the measured corner radius of each of an app's windows on screen
         screen <x> <y> <w> <h> [n] [app…]  capture part of the screen to PNG, showing only the helper's windows and the named apps' windows
@@ -48,6 +49,7 @@ public enum Spikes {
                 try argument(0, "axperform <app> <id> <action>"), identifier: try argument(1, "axperform <app> <id> <action>"),
                 action: try argument(2, "axperform <app> <id> <action>"))
         case "simfocus": return try await simFocus(try argument(0, "simfocus <app>"))
+        case "axtable": return try await axTable(try argument(0, "axtable <app> [row…]"), rows: arguments.dropFirst().compactMap { Int($0) })
         case "appattrs": return try await appAttributes(try argument(0, "appattrs <app>"))
         case "axattrs": return try await axAttributes(try argument(0, "axattrs <app> <role>"), role: try argument(1, "axattrs <app> <role>"))
         case "idle-counters": return await idleCounters()
@@ -413,6 +415,51 @@ public enum Spikes {
                     lines.append("\(name)\(settable.boolValue ? " (settable)" : "") = \(value)")
                 }
                 lines.append("---")
+            }
+            guard depth < 30 else { return }
+            AX.children(element).forEach { visit($0, depth + 1) }
+        }
+        AX.elements(AX.application(target.pid), "AXWindows").forEach { visit($0, 0) }
+        return lines.joined(separator: "\n")
+    }
+
+    static func axTable(_ query: String, rows wanted: [Int]) async throws -> String {
+        let target = try await app(query)
+        try requireAccessibility()
+        var lines: [String] = []
+        func timed<T>(_ label: String, _ work: () -> T) -> T {
+            let start = Date()
+            let result = work()
+            lines.append("  \(label): \(Int(Date().timeIntervalSince(start) * 1000)) ms")
+            return result
+        }
+        func text(_ element: AXUIElement) -> String {
+            let node = AXReader(maxNodes: 200, maxDepth: 8, timeBudget: 2).read(element)
+            return ReadText.text(of: node).replacingOccurrences(of: "\n", with: " | ")
+        }
+        func visit(_ element: AXUIElement, _ depth: Int) {
+            let role = AX.role(element)
+            if role == "AXTable" || role == "AXOutline" {
+                lines.append("\(role) id=\(AX.string(element, "AXIdentifier") ?? "-")")
+                let rows = timed("AXRows") { AX.elements(element, "AXRows") }
+                let visible = timed("AXVisibleRows") { AX.elements(element, "AXVisibleRows") }
+                let children = timed("AXChildren") { AX.children(element) }
+                let indexes = visible.compactMap { AX.attribute($0, "AXIndex") as? Int }
+                lines.append("  rows \(rows.count), visible \(visible.count) (indexes \(indexes.first ?? -1)…\(indexes.last ?? -1)), children \(children.count)")
+                let columns = AX.elements(element, "AXColumns")
+                lines.append("  columns: " + columns.map { column in
+                    let header = AX.attribute(column, "AXHeader").map { $0 as! AXUIElement }
+                    return "title=\(AX.string(column, "AXTitle") ?? "-") desc=\(AX.string(column, "AXDescription") ?? "-") header=\(header.map { "\(AX.role($0)) \(AX.string($0, "AXTitle") ?? AX.string($0, "AXDescription") ?? AX.value($0) ?? "-")" } ?? "-")"
+                }.joined(separator: "; "))
+                if let header = AX.attribute(element, "AXHeader").map({ $0 as! AXUIElement }) {
+                    lines.append("  header: \(AX.role(header)) children: " + AX.children(header).map { "\(AX.role($0)) \(AX.string($0, "AXTitle") ?? AX.string($0, "AXDescription") ?? AX.value($0) ?? "-")" }.joined(separator: ", "))
+                }
+                if let first = visible.first { lines.append("  first visible: \(timed("read first visible") { text(first) })") }
+                for index in wanted where rows.indices.contains(index) {
+                    let row = rows[index]
+                    lines.append("  row \(index) (AXIndex \(AX.attribute(row, "AXIndex") as? Int ?? -1), frame \(AX.frame(row).map { "\(Int($0.minY))" } ?? "-")): \(timed("read row \(index)") { text(row) })")
+                }
+                return
             }
             guard depth < 30 else { return }
             AX.children(element).forEach { visit($0, depth + 1) }

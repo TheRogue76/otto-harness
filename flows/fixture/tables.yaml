@@ -1,0 +1,20 @@
+name: Fixture tables collected row by row
+platforms: [macos]
+app: Harness Fixture
+setup:
+  - quit: { app: Harness Fixture, force: true }
+steps:
+  - launch: { app: Harness Fixture, arguments: [--tables, appkit] }
+  - wait: { id: appkit-table }
+  - collect: { role: row, max: 500, count: 200, first: "Keyword 1 | 37 | 3", last: "Keyword 200 | 0 | 600" }
+  - quit: Harness Fixture
+  - launch: { app: Harness Fixture, arguments: [--tables, table] }
+  - wait: { id: swiftui-table }
+  - collect: { role: row, max: 60, count: 60, first: "Keyword 1 | 37 | 3", last: "Keyword 60 | 20 | 180" }
+  - collect: { role: row, max: 500, continue: true, count: 140, first: "Keyword 61 | 57 | 183", last: "Keyword 200 | 0 | 600" }
+  - quit: Harness Fixture
+  - launch: { app: Harness Fixture, arguments: [--tables, list] }
+  - wait: { id: swiftui-list }
+  - collect: { role: row, max: 500, count: 200, first: "Keyword 1 37", last: "Keyword 200 0" }
+teardown:
+  - quit: Harness Fixture

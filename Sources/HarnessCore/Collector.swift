@@ -46,19 +46,23 @@ package struct Collector {
         return found
     }
 
-    /// An item's text and links; a link item's own target comes first.
+    /// An item's text and links; a link item's own target comes first, and a table row's text is
+    /// its cells on one line.
     package static func describe(_ raw: RawNode) -> Found {
         var links = ReadText.links(in: raw)
         if raw.role == "AXLink", let url = raw.url {
             let text = ReadText.text(of: raw)
             links.insert((raw, raw.label ?? (text.isEmpty ? nil : text), url), at: 0)
         }
-        return Found(raw: raw, text: ReadText.text(of: raw), links: links)
+        let text = TableText.isRow(raw) ? TableText.text(of: raw) : ReadText.text(of: raw)
+        return Found(raw: raw, text: text, links: links)
     }
 
-    /// What tells an item apart: the URL of its first link containing `key`, or else its text.
+    /// What tells an item apart: the URL of its first link containing `key`, else a table row's
+    /// position in its table, else its text.
     package func identity(of found: Found) -> String {
         if let key, let link = found.links.first(where: { $0.url.contains(key) }) { return "url " + link.url }
+        if let index = found.raw.index, found.raw.role == "AXRow" { return "row \(index)" }
         return "text " + found.text
     }
 

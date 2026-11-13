@@ -23,7 +23,7 @@ public enum Snapshotter {
         if let ref = params.root {
             rootElement = try element(for: ref, app: app)
         }
-        let raw = AXReader(maxNodes: max(params.maxNodes * 8, 2000), maxDepth: params.maxDepth + 20).read(rootElement)
+        let raw = AXReader(maxNodes: max(params.maxNodes * 8, 2000), maxDepth: params.maxDepth + 20, rowsOutOfView: .skip).read(rootElement)
         var shaper = TreeShaper(
             space: window.space, maxNodes: max(params.maxNodes, 1), maxDepth: params.maxDepth, ref: registrar(for: app)
         )
@@ -40,6 +40,7 @@ public enum Snapshotter {
         if shaped.offscreen > 0 {
             notices.append(Notice(kind: "offscreen", message: "\(shaped.offscreen) elements are scrolled or clipped out of view; `find` still searches them."))
         }
+        if let rows = TableText.rowsOutOfViewNotice(in: raw) { notices.append(rows) }
         return SnapshotMethod.Result(
             window: window.info, root: shaped.root, notices: notices, shownCount: shaped.shown,
             readCount: raw.count, milliseconds: Int(Date().timeIntervalSince(started) * 1000)

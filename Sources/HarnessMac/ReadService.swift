@@ -34,11 +34,32 @@ extension ReadService {
             element = pageElement
         }
         AX.setTimeout(element, seconds: window.isSimulator ? 8 : 2)
-        let raw = AXReader(maxNodes: 5000, maxDepth: 80, timeBudget: 5, valueLimit: limit).read(element)
+        let tableElement = TableHeaders.table(at: element)
+        let rows: AXReader.RowsOutOfView = params.visible == true || tableElement != nil ? .skip : .last
+        let raw = AXReader(maxNodes: 8000, maxDepth: 80, timeBudget: 5, valueLimit: limit, rowsOutOfView: rows).read(element)
         var shaper = TreeShaper(space: window.space, maxNodes: 1, maxDepth: 0, ref: Snapshotter.registrar(for: app))
         shaper.links = true
-        let notices = await Notices.collect(for: window.info) + [treeNotice, ListHint.notice(for: raw)].compactMap { $0 }
-        return result(raw, node: shaper.makeNode(raw, visible: visible), app: app, window: window.info, ref: shaper.ref, notices: notices)
+        var notices = await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 }
+        var table: ReadMethod.Table?
+        if let tableElement {
+            let pager = TableRows(table: tableElement)
+            let read = params.visible == true
+                ? (rows: await pager.next().children, total: AX.elements(tableElement, "AXRows").count)
+                : await pager.all(until: Date().addingTimeInterval(20))
+            let spans = TableHeaders.spans(of: tableElement)
+            let content = TableText.content(of: read.rows, columns: TableHeaders.columns(of: tableElement), spans: spans, total: read.total)
+            table = content
+            let incomplete = read.rows.filter { !TableText.isComplete($0, columns: pager.columns) }.count
+            notices += TableText.notices(for: content, visibleOnly: params.visible == true, incomplete: incomplete)
+        } else {
+            notices += [ListHint.notice(for: raw), params.visible == true ? TableText.rowsOutOfViewNotice(in: raw) : nil].compactMap { $0 }
+        }
+        var outcome = result(raw, node: shaper.makeNode(raw, visible: visible), app: app, window: window.info, ref: shaper.ref, notices: notices)
+        if let table {
+            outcome.table = table
+            outcome.text = table.rows.map { $0.joined(separator: " | ") }.joined(separator: "\n")
+        }
+        return outcome
     }
 
 }

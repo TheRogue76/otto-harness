@@ -9,7 +9,11 @@ struct HarnessFixtureApp: App {
 
     var body: some Scene {
         WindowGroup("Harness Fixture") {
-            FixtureView()
+            if TablesView.isAsked {
+                TablesView()
+            } else {
+                FixtureView()
+            }
         }
         .windowResizability(.contentSize)
         MenuBarExtra("Fixture Extra", systemImage: "star.circle", isInserted: $showsExtra) {

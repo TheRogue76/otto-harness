@@ -173,7 +173,13 @@ public enum Render {
         default: why = result.stopped
         }
         lines.append("Collected \(count); stopped: \(why).")
+        if let columns = result.columns, !columns.isEmpty { lines.append("Columns: " + columns.joined(separator: " | ")) }
         for (index, item) in result.items.enumerated() {
+            if result.columns != nil, !item.text.contains("\n") {
+                lines.append("\(index + 1). \(item.ref)  \(item.text)")
+                lines += item.links.map { link in "   \(link.ref) " + (link.label.map { quote($0, limit: 80) + " " } ?? "") + "→ \(link.url)" }
+                continue
+            }
             lines.append("\(index + 1). \(item.ref)")
             lines += item.text.split(separator: "\n", omittingEmptySubsequences: false).map { "   " + $0 }
             lines += item.links.map { link in "   \(link.ref) " + (link.label.map { quote($0, limit: 80) + " " } ?? "") + "→ \(link.url)" }
@@ -205,7 +211,12 @@ public enum Render {
             lines.append("Value: " + value)
         }
         if let url = element.url, url.count > urlLimit { lines.append("URL: " + url) }
-        if let text = result.text {
+        if let table = result.table {
+            if !table.columns.isEmpty { lines.append("Columns: " + table.columns.joined(separator: " | ")) }
+            let first = (table.first ?? 0) + 1
+            lines.append(table.rows.isEmpty ? "No rows of \(table.total)." : "Rows \(first)–\(first + table.rows.count - 1) of \(table.total):")
+            lines += table.rows.map { $0.joined(separator: " | ") }
+        } else if let text = result.text {
             lines.append("Text:")
             lines.append(text)
         }

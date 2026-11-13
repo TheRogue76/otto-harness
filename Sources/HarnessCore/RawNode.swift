@@ -26,12 +26,16 @@ public struct RawNode {
     public var children: [RawNode]
     /// Children that weren't read because a limit was reached.
     public var unread: Int
+    /// A table row's position in its table, counting from 0; nil for anything else.
+    public var index: Int?
+    /// A table's rows out of view that weren't read, because only what's on screen was asked for.
+    public var rowsOutOfView: Int = 0
 
     public init(
         key: AnyHashable? = nil, role: String, subrole: String? = nil,
         title: String? = nil, details: String? = nil, placeholder: String? = nil, value: String? = nil,
         identifier: String? = nil, url: String? = nil, enabled: Bool? = nil, focused: Bool? = nil, selected: Bool? = nil,
-        actions: [String] = [], frame: CGRect? = nil, children: [RawNode] = [], unread: Int = 0
+        actions: [String] = [], frame: CGRect? = nil, children: [RawNode] = [], unread: Int = 0, index: Int? = nil
     ) {
         self.key = key
         self.role = role
@@ -49,6 +53,7 @@ public struct RawNode {
         self.frame = frame
         self.children = children
         self.unread = unread
+        self.index = index
     }
 
     /// Names for a window's close, minimize, zoom and full screen buttons, by subrole.
@@ -63,6 +68,13 @@ public struct RawNode {
     /// The best human-readable name: a window button's name, else the title, description or
     /// placeholder.
     public var label: String? { windowButtonName ?? title ?? details ?? placeholder }
+
+    /// Changes the node at `path`, a list of child positions from this node; nothing when there's none there.
+    public mutating func update(at path: [Int], _ change: (inout RawNode) -> Void) {
+        guard let first = path.first else { return change(&self) }
+        guard children.indices.contains(first) else { return }
+        children[first].update(at: Array(path.dropFirst()), change)
+    }
 
     /// Total nodes in this subtree, including itself.
     public var count: Int { 1 + children.reduce(0) { $0 + $1.count } }

@@ -105,7 +105,7 @@ No parameters.
 
 ## read
 
-**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read, or with page=true only a browser window's web page, without the browser's own controls.
+**Read an element in full.** Read only. One element's whole label and value (snapshot and find shorten them), all the text inside it in reading order (a post's author, text and counts, say), and the links inside it with where they go, as refs. Name the element with ref, or text/role/id; without one, the whole window is read, or with page=true only a browser window's web page, without the browser's own controls. A table or outline comes back as its column headers and rows, each row its cells; visible=true reads only the rows on screen, which is quicker in big tables.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -116,11 +116,12 @@ No parameters.
 | `ref` | string | Ref from snapshot or find, e.g. k12. |
 | `role` | string | Instead of a ref: role such as group, link, textarea. |
 | `text` | string | Instead of a ref: match label, value or identifier containing this. |
+| `visible` | boolean | Read only what's on screen, leaving out the rows of tables and lists scrolled out of view. |
 | `window` | integer or string | Window ID from `windows`, or part of the window's title; defaults to the focused window. |
 
 ## collect
 
-**Collect a list's items.** Every item of a long list that shows only part of itself at a time (a web timeline or feed, a long table, an iOS or Android list), each once, with its text (as read gives it) and its links, as refs. Name the items with role (article for a web page's posts, row, cell), text or id. It scrolls by bringing the last item into view, or a background scroll, never the real mouse, and stops at max, at the item containing until, at the end of the list, or after max_seconds; then continue=true carries on without repeating items. key tells items apart by a link instead of their text (e.g. /status/ for posts whose counts change).
+**Collect a list's items.** Every item of a long list that shows only part of itself at a time (a web timeline or feed, a long table, an iOS or Android list), each once, with its text (as read gives it) and its links, as refs. Name the items with role (article for a web page's posts, row, cell), text or id. It scrolls by bringing the last item into view, or a background scroll, never the real mouse, and stops at max, at the item containing until, at the end of the list, or after max_seconds; then continue=true carries on without repeating items. key tells items apart by a link instead of their text (e.g. /status/ for posts whose counts change). With role row on a Mac table or outline, each item is a whole row, its cells separated by " | ", told apart by its position, and the result names the columns.
 
 | Parameter | Type | Description |
 | --- | --- | --- |

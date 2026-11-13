@@ -718,7 +718,7 @@ extension Settle {
         var minorWindowIDs: Set<UInt32> = []
 
         static func take(window: WindowService.Window, app: AppRef) -> Capture {
-            let raw = AXReader(maxNodes: 3000, maxDepth: 60, timeBudget: 1.5).read(window.content)
+            let raw = AXReader(maxNodes: 3000, maxDepth: 60, timeBudget: 1.5, rowsOutOfView: .skip).read(window.content)
             let shaped = TreeShaper(
                 space: window.space, maxNodes: 400, maxDepth: 40, ref: Snapshotter.registrar(for: app)
             ).shape(raw)

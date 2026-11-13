@@ -2,6 +2,8 @@
 
 ## 2026-11-13
 
+* **New**: [How Mac tables and SwiftUI lists look to accessibility](/research/table-accessibility.md), from a spike on the fixture's new tables window.
+* **Update**: [Collecting the items of a long list](/design/collect.md) and [Interface contract](/design/interface-contract.md): tables are read and collected a screenful at a time through the scroll bar, rows told apart by position; snapshots leave out rows out of view, other reads read them last.
 * **Update**: 2.1.0 released with #180, #182, #183 and #186; #181 (tables) is planned for 2.2.
 * **Update**: [Actions](/design/actions.md) and [Interface contract](/design/interface-contract.md): `type` and `paste` check the field's value when the tree shows no change.
 * **Update**: [Chromium and canvas apps](/design/chromium-and-canvas.md) and [Interface contract](/design/interface-contract.md): `launch --open` says where it opened and takes `-w`, windows can be named by title, and `tabs` waits for the strip to settle.

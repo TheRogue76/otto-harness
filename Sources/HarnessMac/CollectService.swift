@@ -17,6 +17,17 @@ extension CollectService {
         let memory = CollectMemory.key(owner: context.owner, place: "\(app.pid)|\(window.info.id)", params: params)
         var collector = try await collector(params, memory: memory)
         collector.patience = window.isSimulator ? 6 : 2
+        if !window.isSimulator, params.item.role?.lowercased() == "row", let table = table(in: container) {
+            let rows = TableRows(table: table)
+            collector.idleLimit = 2
+            if params.continue != true { await rows.toTop() }
+            let outcome = try await collector.run(read: { await rows.next() }, scroll: { await rows.moveOn(from: $0) }, aborted: context.shouldAbort)
+            await CollectMemory.shared.remember(memory, seen: collector.seen)
+            let shaper = TreeShaper(space: window.space, maxNodes: 1, maxDepth: 0, ref: Snapshotter.registrar(for: app))
+            var result = result(outcome, app: app, window: window.info, ref: shaper.ref, notices: await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 })
+            result.columns = TableHeaders.columns(of: table)
+            return result
+        }
         let outcome = try await collector.run(
             read: { AXReader(maxNodes: 8000, maxDepth: 80, timeBudget: 4, valueLimit: 20_000).read(container) },
             scroll: { last in
@@ -28,7 +39,13 @@ extension CollectService {
         )
         await CollectMemory.shared.remember(memory, seen: collector.seen)
         let shaper = TreeShaper(space: window.space, maxNodes: 1, maxDepth: 0, ref: Snapshotter.registrar(for: app))
-        let notices = await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 }
+        var notices = await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 }
+        if !window.isSimulator, ["cell", "text"].contains(params.item.role?.lowercased() ?? ""), table(in: container) != nil {
+            notices.append(Notice(
+                kind: "tableItems",
+                message: "These items are inside a table; `collect` with item row returns each row whole, its cells in order, and scrolls the table itself."
+            ))
+        }
         return result(outcome, app: app, window: window.info, ref: shaper.ref, notices: notices)
     }
 
@@ -50,6 +67,13 @@ extension CollectService {
         }
         try? await Task.sleep(for: .milliseconds(500))
         return true
+    }
+
+    /// The table or outline `container` is or holds, the one with the most rows when there are several.
+    static func table(in container: AXUIElement) -> AXUIElement? {
+        if let table = TableHeaders.table(at: container) { return table }
+        let outline = AXReader(maxNodes: 3000, maxDepth: 40, timeBudget: 2, rowsOutOfView: .skip).read(container)
+        return TableText.table(in: outline)?.element
     }
 
     /// Pages a simulator's list down from its last item.
