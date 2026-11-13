@@ -50,6 +50,12 @@ public enum ElementSearch {
         return true
     }
 
+    /// Whether a search for `selector` in a browser window counts only matches inside the page:
+    /// a search by text for anything but the window itself, whose title is its own.
+    public static func pageOnly(_ selector: ElementSelector) -> Bool {
+        selector.text != nil && selector.role?.lowercased() != "window"
+    }
+
     /// The browser page in a window's tree: its first `AXWebArea`, outside which a browser keeps
     /// its toolbar, tabs and address bar; nil in other windows.
     public static func page(in root: RawNode) -> RawNode? {

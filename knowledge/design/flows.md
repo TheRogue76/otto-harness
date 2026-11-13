@@ -26,6 +26,7 @@ policy:                    # added to the user's policy for this run only
   read_only: [Mail]        # and background_only: true; flows/fixture/background-only.yaml
 platforms: [macos, linux]  # where the flow runs; elsewhere it's reported as SKIP
 min_macos: 27              # the oldest macOS it runs on; on older ones it's a SKIP
+skip_if_running: [Spotify] # SKIP while the user's copy runs, for flows that launch with arguments (2.2)
 setup:
   - launch: { app: Calculator, activate: true }
 steps:

@@ -62,7 +62,7 @@ public enum Snapshotter {
         let selector = ElementSelector(text: params.text, role: params.role, identifier: params.identifier, exact: params.exact)
         var hits = ElementSearch.search(raw, for: selector, clip: window.space.frame, limit: params.limit)
         var notices = await Notices.collect(for: window.info) + [treeNotice].compactMap { $0 }
-        if params.text != nil, let page = ElementSearch.page(in: raw) {
+        if ElementSearch.pageOnly(selector), let page = ElementSearch.page(in: raw) {
             let wider = ElementSearch.search(raw, for: selector, clip: window.space.frame, limit: params.limit + 40)
             let split = ElementSearch.split(wider, page: page)
             hits = Array((ElementSearch.onScreenOrder(split.page) + split.toolbar).prefix(params.limit))

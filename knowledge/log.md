@@ -2,6 +2,7 @@
 
 ## 2026-11-13
 
+* **Update**: [Flows](/design/flows.md): `skip_if_running` skips a flow while the user's copy of an app runs; the Spotify flow uses it, since a running Spotify started without `--force-renderer-accessibility` shows no tree. Waits and finds for a window by its title no longer count only page text, which broke the VS Code flows.
 * **New**: [How Mac tables and SwiftUI lists look to accessibility](/research/table-accessibility.md), from a spike on the fixture's new tables window.
 * **Update**: [Collecting the items of a long list](/design/collect.md) and [Interface contract](/design/interface-contract.md): tables are read and collected a screenful at a time through the scroll bar, rows told apart by position; snapshots leave out rows out of view, other reads read them last.
 * **Update**: 2.1.0 released with #180, #182, #183 and #186; #181 (tables) is planned for 2.2.

@@ -63,7 +63,10 @@ because the address bar's URL contained "dmarc"
 text is only in the toolbar, tabs or address bar, the timeout says so with a
 `toolbarOnly` notice. `find` lists matches in the page first and gives the
 same notice when every match is in the toolbar. Selectors by role or id
-search the whole window as before.
+search the whole window as before, and so does text with role `window`:
+the window's title is its own, and Electron apps like VS Code have a web
+area, so flows waiting for a VS Code window by title timed out from 1.3 on
+([#191](https://github.com/TheRogue76/otto-harness/issues/191)).
 
 Reading a page took agents many calls
 ([#180](https://github.com/TheRogue76/otto-harness/issues/180)), so:

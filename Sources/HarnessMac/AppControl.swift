@@ -434,7 +434,7 @@ public enum AppControl {
             return (shaper.makeNode(resolved.raw, visible: resolved.visible), false)
         }
         let raw = AXReader(maxNodes: 8000, maxDepth: 80, timeBudget: 2).read(window.content)
-        if selector.text != nil, let page = ElementSearch.page(in: raw) {
+        if ElementSearch.pageOnly(selector), let page = ElementSearch.page(in: raw) {
             if let hit = ElementSearch.search(page, for: selector, clip: window.space.frame, limit: 1).first {
                 return (shaper.makeNode(hit.raw, visible: hit.visible), false)
             }

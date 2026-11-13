@@ -1,5 +1,6 @@
 name: Spotify searches, plays and pauses
 app: Spotify
+skip_if_running: [Spotify]
 vars:
   query: "Miles Davis"
 setup:

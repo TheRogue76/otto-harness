@@ -22,7 +22,8 @@ teardown:
 Steps are the commands agents use (`press`, `type`, `key`, `click`, `drag`, `menu`,
 `wait`, `collect`, `sim`, `android`, `build`…) plus `expect` checks, `shell` commands, variables
 (`${name}`, set with `--var name=value`), `only_if` guards, `platform:` on steps and
-`platforms:` on flows that only work on macOS or Linux (`min_macos:` for a macOS version), and a policy that applies only
+`platforms:` on flows that only work on macOS or Linux (`min_macos:` for a macOS version), `skip_if_running:` for flows
+that start an app with launch arguments and so can't use your running copy, and a policy that applies only
 while the flow runs. The full format is in
 [flows](../knowledge/design/flows.md).
 
