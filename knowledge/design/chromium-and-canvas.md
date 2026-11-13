@@ -84,7 +84,9 @@ main window first, since browsers open URLs in their last active window;
 `-w` (and MCP `window`) takes part of a window's title as well as an ID,
 which the client turns into an ID with `windows`, exact titles first,
 refusing when no window or several match, since IDs don't survive a
-restart; and `tabs` reads the tab strip until two reads 250 ms apart
+restart. With URLs to open, `launch` uses the running copy's own bundle, and
+refuses when several copies of the app run (the owner's Chrome beside a
+throwaway one), since macOS picks which copy opens them. `tabs` reads the tab strip until two reads 250 ms apart
 agree (up to a second), since Chrome kept listing a tab it had just
 closed.
 
