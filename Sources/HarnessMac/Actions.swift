@@ -278,8 +278,17 @@ extension ActionService {
         case .select:
             if isSettable(target.element, "AXSelected") {
                 try check(AX.set(target.element, "AXSelected", kCFBooleanTrue), doing: "select \(name)", notices: &notices)
+                if (AX.attribute(target.element, "AXSelected") as? Bool) == false {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    if (AX.attribute(target.element, "AXSelected") as? Bool) == false {
+                        throw RPCError(code: RPCErrorCode.failed, message: "\(name) says it can be selected, but stayed unselected; `click` it instead.")
+                    }
+                }
+            } else if let action = pressActionName(actions: target.raw.actions, role: target.raw.role) {
+                try check(AX.perform(target.element, action), doing: "select \(name)", notices: &notices)
             } else {
-                try check(AX.perform(target.element, try pressAction(for: target, name: name)), doing: "select \(name)", notices: &notices)
+                let offered = target.raw.actions.isEmpty ? "none" : target.raw.actions.map { $0.replacingOccurrences(of: "AX", with: "").lowercased() }.joined(separator: ", ")
+                throw RPCError(code: RPCErrorCode.failed, message: "\(name) can't be selected through accessibility (its actions: \(offered)); `click` it instead.")
             }
             performed = "selected \(name)"
         case .increment, .decrement:

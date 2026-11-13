@@ -42,6 +42,13 @@ release. Using it prints a note: on stderr for the CLI, after the result
 text for MCP. Removals and the end of aliases are listed in the release
 notes of the major release that makes them.
 
+Agents that know the MCP tools reach for them on the command line, so
+`otto act <action> …` (and `act <ref> <action> …`) runs the action's own
+command, `otto act` alone and `help act` explain this, and an unknown
+command names the nearest one instead of a parser error
+([#184](https://github.com/TheRogue76/otto-harness/issues/184)). These
+aren't renames, so they print no note.
+
 Renamed in 0.10 by the audit[^audit]:
 
 | Old | New | Why |
@@ -117,6 +124,7 @@ Whether the action's result was seen ([actions](/design/actions.md)):
 | `launchArgumentsIgnored` | launch | The app was already running, so launch arguments, environment and presets weren't applied |
 | `activated` | action | The app was brought to the front |
 | `raisedByFocus` | action | The window was focused because the app can't raise it |
+| `partialList` | read | What was read is a scrolling list showing only the rows on screen; `collect` reads all of it |
 | `keyWindow` | action | The named window was made the app's focused window before keys went to it, or (with no window named) keys went to another window of the app |
 | `panel` | action | Keys went to an open file panel's process |
 | `editing` | action | A text field is still being edited |

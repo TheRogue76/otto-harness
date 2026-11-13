@@ -137,6 +137,12 @@ keep the focused window.
    `window activate` falls back to activating the app through
    `NSRunningApplication` when raising and focusing through accessibility
    didn't bring the window in front (Astro refuses `AXRaise` with -25205).
+   `select` reads `AXSelected` back: SwiftUI rows can say it's settable and
+   ignore it, and a row with neither that nor a press action is refused
+   with its actions listed, pointing to `click`. Over MCP, `act` with
+   `type` or `paste`, no `value` and `text` as the only selector types that
+   text, since agents mix the two up
+   ([#184](https://github.com/TheRogue76/otto-harness/issues/184)).
 
 A background click that shows no effect isn't repeated with the real mouse
 (the owner chose this hybrid for
