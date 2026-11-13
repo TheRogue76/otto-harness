@@ -165,6 +165,8 @@ extension ActionService {
             )
         }
         let allowFocused = [.type, .key, .paste].contains(params.action)
+        let namedFocus = allowFocused && params.element == nil && !params.real && !window.isSimulator
+            ? try await focusNamedWindow(window, of: app, named: params.target.window != nil) : nil
         var target: ResolvedElement
         if window.isSimulator, let selector = params.element, selector.ref == nil, !selector.isEmpty {
             target = try await SimulatorScrolling.reveal(selector, window: window, app: app, deadline: scrollDeadline)
@@ -185,7 +187,7 @@ extension ActionService {
         }
 
         var via = "AX"
-        var notices: [Notice] = [treeNotice].compactMap { $0 }
+        var notices: [Notice] = [treeNotice, namedFocus].compactMap { $0 }
         let focusUnknown = params.element == nil && CFEqual(target.element, window.element)
         if focusUnknown {
             notices.append(Notice(
