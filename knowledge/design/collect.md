@@ -2,13 +2,16 @@
 type: Design
 title: Collecting the items of a long list
 description: "`collect` scrolls a list that shows only part of itself at a time (a web timeline, a long table, an iOS or Android list) and returns each item once, with its text and links: how it finds items, tells them apart, scrolls without the real mouse, stops, and picks up where it left off."
-tags: [design, collect, lists, virtualised, scrolling, chromium, ios, android, 1.0]
+tags: [design, collect, lists, virtualised, scrolling, chromium, ios, android, tables, 1.0]
 status: draft
 generated: { by: claude-code/claude-opus-5-5, at: 2026-10-17T20:30:00Z }
 sources:
   - id: issue
     resource: https://github.com/TheRogue76/macos-harness/issues/47
     title: "Collect every item of a scrolling or virtualised list once (#47)"
+  - id: tables
+    resource: https://github.com/TheRogue76/otto-harness/issues/181
+    title: "Tables: collect and read rows of macOS tables and SwiftUI lists (#181)"
 ---
 
 # Why
@@ -75,6 +78,39 @@ the user:
 Pages that load more over the network take a moment: a scroll that brings
 nothing new counts as idle, and three idle scrolls in a row end the run.
 
+# Tables
+
+Tables and outlines on the Mac (NSTableView, SwiftUI `Table` and `List`)
+get their own path, from 2.2,[^tables] because their rows out of view are slow to
+read and, in SwiftUI, come back missing cells
+([table accessibility](/research/table-accessibility.md)):
+
+- **`collect --role row`** on a table (`--within` it, or a window holding
+  one, the one with the most rows) starts at the top (unless continuing),
+  reads the rows on screen (`AXVisibleRows`), reading again up to twice any
+  row missing a cell or a cell's text, then moves the vertical scroll bar
+  down by a screenful less a row, since tables refuse to scroll by page or
+  to a row. At the bottom it brings the last row into view, for tables that
+  load more, and two reads without new rows end it. Each item's text is its
+  cells separated by " | ", items are told apart by their position
+  (`AXIndex`), so a row whose cells filled in later isn't taken twice, and
+  the result names the columns from the headers.
+- **`collect` with `cell` or `text` items** in a table adds a `tableItems`
+  notice pointing to `--role row`.
+- **`read` on a table** (or a scroll area holding one) pages through it the
+  same way, puts the scroll bar back where it was, and returns the column
+  headers and every row as cells (200 rows in 5–7 s). `--visible` reads only
+  the rows on screen and doesn't scroll. Rows still missing cells keep the
+  cells they have under their columns, by position, and an
+  `incompleteRows` notice says how many.
+- **Snapshots and change reports** leave out the rows of tables of 40 rows
+  or more that are out of view, with a `rowsOutOfView` notice; other reads
+  (`find`, `wait`, `read` of a window) read them last, after the rest of the
+  window, so a long table no longer leaves the controls beside it unread.
+  The fixture's tables window went from 3 s to 0.2 s per snapshot.
+
+`flows/fixture/tables.yaml` collects each kind of table.
+
 # Limits and rules
 
 - **It scrolls the app**, so the policy treats it as acting (a read-only app
@@ -91,3 +127,4 @@ nothing new counts as idle, and three idle scrolls in a row end the run.
   (`docs/unattended.md` has the setup that works).
 
 [^issue]: Collect every item of a scrolling or virtualised list once (#47)
+[^tables]: Tables: collect and read rows of macOS tables and SwiftUI lists (#181)

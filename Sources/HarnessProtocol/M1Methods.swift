@@ -296,11 +296,32 @@ public enum ReadMethod: RPCMethod {
         public var element: ElementSelector?
         /// Reads only the web page in a browser window, without the browser's own controls.
         public var page: Bool?
+        /// Reads only what's on screen, leaving out the rows of tables and lists scrolled out of view.
+        public var visible: Bool?
 
-        public init(target: Target, element: ElementSelector? = nil, page: Bool? = nil) {
+        public init(target: Target, element: ElementSelector? = nil, page: Bool? = nil, visible: Bool? = nil) {
             self.target = target
             self.element = element
             self.page = page
+            self.visible = visible
+        }
+    }
+
+    /// A table or outline's column headers and rows, each row its cells' text.
+    public struct Table: Codable, Sendable, Equatable {
+        /// Column headers, in order; empty when the table shows none.
+        public var columns: [String]
+        public var rows: [[String]]
+        /// Position of the first row returned among all the table's rows, counting from 0.
+        public var first: Int?
+        /// How many rows the table holds, read or not.
+        public var total: Int
+
+        public init(columns: [String], rows: [[String]], first: Int?, total: Int) {
+            self.columns = columns
+            self.rows = rows
+            self.first = first
+            self.total = total
         }
     }
 
@@ -326,14 +347,17 @@ public enum ReadMethod: RPCMethod {
         /// beyond its own label and value.
         public var text: String?
         public var links: [Link]
+        /// The columns and rows, when the element is a table or an outline.
+        public var table: Table?
         public var notices: [Notice]
 
-        public init(app: AppRef, window: WindowInfo, element: UINode, text: String?, links: [Link], notices: [Notice]) {
+        public init(app: AppRef, window: WindowInfo, element: UINode, text: String?, links: [Link], table: Table? = nil, notices: [Notice]) {
             self.app = app
             self.window = window
             self.element = element
             self.text = text
             self.links = links
+            self.table = table
             self.notices = notices
         }
     }
@@ -398,13 +422,17 @@ public enum CollectMethod: RPCMethod {
         /// Why it stopped: `max`, `until`, `end` (nothing new after scrolling), `time` or `stuck`
         /// (it couldn't scroll further).
         public var stopped: String
+        /// The table's column headers, when the items are a table's rows; each item's text is then
+        /// its cells, separated by " | ".
+        public var columns: [String]?
         public var notices: [Notice]
 
-        public init(app: AppRef, window: WindowInfo, items: [Item], stopped: String, notices: [Notice]) {
+        public init(app: AppRef, window: WindowInfo, items: [Item], stopped: String, columns: [String]? = nil, notices: [Notice]) {
             self.app = app
             self.window = window
             self.items = items
             self.stopped = stopped
+            self.columns = columns
             self.notices = notices
         }
     }

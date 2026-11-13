@@ -282,8 +282,10 @@ OVERVIEW: Read an element in full: its whole label and value, the text inside it
 Snapshots and find shorten long labels and values; read gives them whole, with all the text inside
 the element in reading order (a post's author, text and counts, say) and where each link inside it
 goes. Without an element it reads the whole window; --page reads only a browser window's web page.
+A table or outline comes back as its column headers and rows; --visible reads only the rows on
+screen, which is quicker in big tables.
 
-USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--page] [--json]
+USAGE: otto read [<ref>] --app <app> [--window <window>] [--text <text>] [--role <role>] [--id <id>] [--exact] [--page] [--visible] [--json]
 
 ARGUMENTS:
   <ref>                   Ref from snapshot or find, e.g. k12.
@@ -299,6 +301,8 @@ OPTIONS:
   --exact                 --text must match the whole label, value or identifier.
   --page                  Read only the web page in a browser window, without the browser's own
                           controls.
+  --visible               Read only what's on screen, leaving out the rows of tables and lists
+                          scrolled out of view.
   --json                  Print JSON instead of text.
   --version               Show the version.
   -h, --help              Show help information.
@@ -335,7 +339,8 @@ For lists that show only part of themselves at a time: web timelines and feeds, 
 and Android lists. Name the items with --role (article for a web page's posts, row, cell), --text
 or --id. It scrolls by bringing the last item into view, or a background scroll, never the real
 mouse, and stops at --max, --until, the end of the list, or after --max-seconds; --continue then
-carries on without repeating items.
+carries on without repeating items. With --role row on a Mac table or outline, each item is a whole
+row, its cells separated by " | ", and the columns are named.
 
 USAGE: otto collect [<options>] --app <app>
 

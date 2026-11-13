@@ -97,7 +97,7 @@ public final class FlowRunner {
 
     /// Runs setup, then the steps (unless setup failed), then teardown, which always runs.
     public func run(_ flow: Flow) -> FlowResult {
-        if let reason = Self.platformSkip(flow) {
+        if let reason = Self.platformSkip(flow) ?? runningSkip(flow) {
             var result = FlowResult(name: flow.name, path: flow.path, passed: true, milliseconds: 0, steps: [])
             result.skipped = reason
             return result
@@ -201,6 +201,15 @@ public final class FlowRunner {
             return "runs only on macOS \(minimum) or later"
         }
         return nil
+    }
+
+    /// Why a flow won't run because an app it names in `skip_if_running` is already running, or nil.
+    func runningSkip(_ flow: Flow) -> String? {
+        guard !flow.skipIfRunning.isEmpty,
+              let apps = try? caller.call(AppsMethod.self, .init(includeBackground: true), timeout: 10).apps else { return nil }
+        let running = Set(apps.map { $0.name.lowercased() } + apps.compactMap { $0.bundleIdentifier?.lowercased() })
+        guard let app = flow.skipIfRunning.first(where: { running.contains($0.lowercased()) }) else { return nil }
+        return "\(app) is already running; this flow starts its own copy with launch arguments, so quit it first"
     }
 
     /// Why a step won't run: it's for another platform, its `only_if` element is missing, or it

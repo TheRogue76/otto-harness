@@ -1,5 +1,6 @@
 # Research
 
+* [How Mac tables and SwiftUI lists look to accessibility](table-accessibility.md) - An NSTableView, a SwiftUI Table and a SwiftUI List all expose every row with its position, the visible rows and column headers, but reading the rows out of view is slow and, in SwiftUI, gives rows missing cells or their text; they also refuse to scroll by page or to a row, while setting the scroll bar's value scrolls them.
 * [S11: reading AT-SPI trees fast](s11-atspi-access.md) - libatspi's one-call-per-property walk against one Cache.GetItems call plus pipelined GetExtents over D-Bus, measured on GNOME 50; the second is 8 to 20 times faster and survives hung apps.
 * [Linux port audit](linux-port-audit.md) - How much of the 1.0 source is macOS-specific, how each macOS API family maps to Linux on GNOME, KDE and wlroots Wayland, and what was measured on a GNOME 50 desktop.
 * [macOS vs iOS gap analysis](macos-gap-analysis.md) - What agents can do with iOS Simulator apps today, what they can't do with Mac apps, and why the Mac is harder.

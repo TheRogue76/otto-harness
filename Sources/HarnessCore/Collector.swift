@@ -46,24 +46,29 @@ package struct Collector {
         return found
     }
 
-    /// An item's text and links; a link item's own target comes first.
+    /// An item's text and links; a link item's own target comes first, and a table row's text is
+    /// its cells on one line.
     package static func describe(_ raw: RawNode) -> Found {
         var links = ReadText.links(in: raw)
         if raw.role == "AXLink", let url = raw.url {
             let text = ReadText.text(of: raw)
             links.insert((raw, raw.label ?? (text.isEmpty ? nil : text), url), at: 0)
         }
-        return Found(raw: raw, text: ReadText.text(of: raw), links: links)
+        let text = TableText.isRow(raw) ? TableText.text(of: raw) : ReadText.text(of: raw)
+        return Found(raw: raw, text: text, links: links)
     }
 
-    /// What tells an item apart: the URL of its first link containing `key`, or else its text.
+    /// What tells an item apart: the URL of its first link containing `key`, else a table row's
+    /// position in its table, else its text.
     package func identity(of found: Found) -> String {
         if let key, let link = found.links.first(where: { $0.url.contains(key) }) { return "url " + link.url }
+        if let index = found.raw.index, found.raw.role == "AXRow" { return "row \(index)" }
         return "text " + found.text
     }
 
     /// Reads, takes the new items and scrolls until a stop. `pause` waits after a scroll that
-    /// brought nothing new, for lists that load more over the network.
+    /// brought nothing new, for lists that load more over the network, and before trying a
+    /// failed scroll once more, for a window that was briefly out of reach.
     package mutating func run(
         read: () async throws -> RawNode,
         scroll: (RawNode) async throws -> Bool,
@@ -102,7 +107,11 @@ package struct Collector {
             idle = fresh == 0 ? idle + 1 : 0
             if idle >= idleLimit { return (taken, .end) }
             if now() >= deadline { return (taken, .time) }
-            guard let last = items.last, try await scroll(last) else { return (taken, .stuck) }
+            guard let last = items.last else { return (taken, .stuck) }
+            if try await !scroll(last) {
+                await pause(1)
+                guard try await scroll(last) else { return (taken, .stuck) }
+            }
             if idle > 0 { await pause(idle) }
         }
     }

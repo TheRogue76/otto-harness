@@ -223,6 +223,26 @@ struct FlowRunnerTests {
         #expect(throws: FlowError.self) { try FlowParser.parse("app: X\nsteps:\n  - press: A\n    platform: [beos]\n") }
     }
 
+    @Test func aFlowSkipsWhileTheUsersCopyOfAnAppRuns() throws {
+        let flow = try FlowParser.parse("app: Spotify\nskip_if_running: [Spotify]\nsteps:\n  - press: Search\n")
+        #expect(flow.skipIfRunning == ["Spotify"])
+        func run(_ names: [String]) throws -> (FlowResult, [String]) {
+            let helper = FakeHelper { method, _, _ in
+                guard method == AppsMethod.name else { return try actionResult() }
+                let apps = names.enumerated().map {
+                    AppsMethod.App(name: $1, bundleIdentifier: nil, pid: Int32($0 + 1), active: false, hidden: false, activationPolicy: "regular", windowCount: 0)
+                }
+                return try JSONValue(encoding: AppsMethod.Result(apps: apps))
+            }
+            let result = FlowRunner(caller: helper, artifactsRoot: NSTemporaryDirectory(), sleep: { _ in }).run(flow)
+            return (result, helper.calls.map(\.method))
+        }
+        let (skipped, asked) = try run(["Finder", "Spotify"])
+        #expect(skipped.skipped?.hasPrefix("Spotify is already running") == true)
+        #expect(asked == [AppsMethod.name])
+        #expect(try run(["Finder"]).0.skipped == nil)
+    }
+
     @Test func aFlowCanNeedARecentMacOS() throws {
         let flow = try FlowParser.parse("app: X\nmin_macos: 27\nsteps:\n  - press: A\n")
         #expect(flow.minimumMacOS == 27)

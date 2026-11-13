@@ -74,3 +74,12 @@ struct BrowserTabsTests {
         #expect(names == ["heading", "first word", "second word", "sidebar label", "offscreen"])
     }
 }
+
+@Suite struct PageOnlySearchTests {
+    @Test func aWindowIsFoundByItsTitleOutsideThePage() {
+        #expect(ElementSearch.pageOnly(ElementSelector(text: "Inbox")))
+        #expect(ElementSearch.pageOnly(ElementSelector(text: "Inbox", role: "button")))
+        #expect(!ElementSearch.pageOnly(ElementSelector(text: "vscode-test", role: "window")))
+        #expect(!ElementSearch.pageOnly(ElementSelector(role: "button")))
+    }
+}

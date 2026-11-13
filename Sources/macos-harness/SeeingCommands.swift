@@ -134,7 +134,7 @@ struct Find: ParsableCommand {
 struct Collect: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Gather every item of a long list, scrolling it, and print each item once with its text and links.",
-        discussion: "For lists that show only part of themselves at a time: web timelines and feeds, long tables, iOS and Android lists. Name the items with --role (article for a web page's posts, row, cell), --text or --id. It scrolls by bringing the last item into view, or a background scroll, never the real mouse, and stops at --max, --until, the end of the list, or after --max-seconds; --continue then carries on without repeating items."
+        discussion: "For lists that show only part of themselves at a time: web timelines and feeds, long tables, iOS and Android lists. Name the items with --role (article for a web page's posts, row, cell), --text or --id. It scrolls by bringing the last item into view, or a background scroll, never the real mouse, and stops at --max, --until, the end of the list, or after --max-seconds; --continue then carries on without repeating items. With --role row on a Mac table or outline, each item is a whole row, its cells separated by \" | \", and the columns are named."
     )
 
     @OptionGroup var target: TargetOptions
@@ -211,7 +211,7 @@ struct Tabs: ParsableCommand {
 struct Read: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Read an element in full: its whole label and value, the text inside it, and its links.",
-        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window; --page reads only a browser window's web page."
+        discussion: "Snapshots and find shorten long labels and values; read gives them whole, with all the text inside the element in reading order (a post's author, text and counts, say) and where each link inside it goes. Without an element it reads the whole window; --page reads only a browser window's web page. A table or outline comes back as its column headers and rows; --visible reads only the rows on screen, which is quicker in big tables."
     )
 
     @Argument(help: "Ref from snapshot or find, e.g. k12.")
@@ -234,13 +234,16 @@ struct Read: ParsableCommand {
     @Flag(help: "Read only the web page in a browser window, without the browser's own controls.")
     var page = false
 
+    @Flag(help: "Read only what's on screen, leaving out the rows of tables and lists scrolled out of view.")
+    var visible = false
+
     @OptionGroup var output: OutputOptions
 
     func run() throws {
         try reportingErrors(json: output.json) {
             let selector = ElementSelector(ref: ref, text: text, role: role, identifier: identifier, exact: exact)
             let result = try HarnessConnection.openAnnouncingPairing().call(
-                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector, page: page ? true : nil)
+                ReadMethod.self, .init(target: target.target, element: selector.isEmpty ? nil : selector, page: page ? true : nil, visible: visible ? true : nil)
             )
             output.json ? try Output.json(result) : print(Render.read(result))
         }

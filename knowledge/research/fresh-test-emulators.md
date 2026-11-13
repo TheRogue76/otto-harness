@@ -34,8 +34,17 @@ region (`dumpsys input`: `touchableRegion=[0,63][1080,2400]`), so taps
 outside the keyboard never reached the app, and pressing GREET after typing
 changed nothing. Restarting Gboard didn't help either. `adb shell settings
 put secure stylus_handwriting_enabled 0` shrank the region to the keyboard
-(`[0,1517][1080,2400]`), and `flows/android` passed.[^validation] The
-harness doesn't detect this yet
-([#54](https://github.com/TheRogue76/macos-harness/issues/54)).
+(`[0,1517][1080,2400]`), and `flows/android` passed.[^validation] Since
+2.2 the harness checks before tapping an element: when `dumpsys
+input_method` says `mInputShown=true` and the `InputMethod` window's
+`touchableRegion` in `dumpsys input` covers the point, it presses Back to
+hide the keyboard, finds the element again and taps, with a
+`keyboardHidden` notice
+([#54](https://github.com/TheRogue76/macos-harness/issues/54)). A new
+emulator from the same image on 13 November 2026 didn't show the
+tutorial, and turning stylus handwriting on didn't widen the region, so
+the check is tested on recorded output, not live. `grep -m1` on `dumpsys`
+output there made `dumpsys` fail with a broken pipe, so the check reads the
+whole output.
 
 [^validation]: 1.0.0 local validation

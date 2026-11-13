@@ -406,7 +406,12 @@ Progress:
   --virtual` with PipeWire, and CI runs every fixture flow, the pointer
   flow included, under it. Packages on Ubuntu: `kwin-wayland`,
   `kwin-common`, `xdg-desktop-portal-kde` and
-  `qml6-module-qt5compat-graphicaleffects`.
+  `qml6-module-qt5compat-graphicaleffects`. The pointer flow sometimes found no
+  KWin window for the fixture
+  ([#122](https://github.com/TheRogue76/otto-harness/issues/122)), so the
+  lookup asks KWin up to three times, 200 ms apart, and matches a window
+  whose title holds the AT-SPI one (or the other way round), or the app's
+  only window of a usable size when the others are popups or tooltips.
 - Clipboard: `clipboard` and `paste` on Sway and KWin through data
   control (`WaylandClipboard`), with the user's clipboard put back after a
   paste; on KDE `paste` types instead, as KWin 6.6 garbles what data

@@ -129,6 +129,10 @@ Whether the action's result was seen ([actions](/design/actions.md)):
 | `outsideTree` | action | The field that took the text isn't inside the window `find` reads |
 | `opened` | launch | Where a running browser opened the URLs: the window and the showing tab's ref |
 | `partialList` | read | What was read is a scrolling list showing only the rows on screen; `collect` reads all of it |
+| `keyboardHidden` | action | On Android, the keyboard covered the element, so it was hidden with Back before the tap (2.2) |
+| `rowsOutOfView` | snapshot, read | Tables showed only their rows on screen (snapshots, `read --visible`); `read` on the table or `collect --role row` gets the rest (2.2) |
+| `incompleteRows` | read | Some of a table's rows came back without all their cells, left empty in place (2.2) |
+| `tableItems` | collect | The items are cells or text inside a table; `--role row` returns whole rows (2.2) |
 | `keyWindow` | action | The named window was made the app's focused window before keys went to it, or (with no window named) keys went to another window of the app |
 | `panel` | action | Keys went to an open file panel's process |
 | `editing` | action | A text field is still being edited |

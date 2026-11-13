@@ -108,7 +108,12 @@ keep the focused window.
    task-local hook in `SkyLight`). A window on a Space that isn't showing
    takes the route too, since the window server delivers its events there
    ([S10](/research/s10-other-spaces.md),
-   [#50](https://github.com/TheRogue76/macos-harness/issues/50)). With `--no-diff` the gesture still goes
+   [#50](https://github.com/TheRogue76/macos-harness/issues/50)), and so does one that moved to another
+   Space after it was resolved: the route asks the window server where the
+   window is rather than trusting the mark made when it was resolved, and
+   `collect` tries a failed scroll once more after a pause before stopping
+   with `stuck`, after a user switching desktops stopped one mid-run
+   ([#51](https://github.com/TheRogue76/macos-harness/issues/51)). With `--no-diff` the gesture still goes
    in the background but isn't judged or repeated (effect `unverifiable`),
    except that a right-click still waits up to a second for its menu and
    falls back when none opens; until 1.0 `--no-diff` meant the real mouse,

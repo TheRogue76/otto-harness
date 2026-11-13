@@ -16,6 +16,9 @@ public struct Flow: Equatable, Sendable {
     public var platforms: Set<String>?
     /// The oldest major macOS version the flow runs on there (`min_macos`); nil runs it on any.
     public var minimumMacOS: Int?
+    /// Apps whose running copy makes the flow skip (`skip_if_running`): flows that start an app
+    /// with launch arguments leave the user's own copy alone.
+    public var skipIfRunning: [String] = []
     public var setup: [FlowStep]
     public var steps: [FlowStep]
     public var teardown: [FlowStep]
@@ -185,7 +188,7 @@ public struct FlowError: Error, CustomStringConvertible, Equatable {
 
 /// Reads flow files.
 public enum FlowParser {
-    static let topLevelKeys: Set<String> = ["name", "app", "vars", "policy", "private", "platforms", "min_macos", "setup", "steps", "teardown"]
+    static let topLevelKeys: Set<String> = ["name", "app", "vars", "policy", "private", "platforms", "min_macos", "skip_if_running", "setup", "steps", "teardown"]
     static let platformNames: Set<String> = ["macos", "linux"]
     static let selectorKeys: Set<String> = ["ref", "text", "role", "id", "exact", "ocr"]
     static let targetKeys: Set<String> = ["app", "window", "only_if", "refused"]
@@ -242,6 +245,7 @@ public enum FlowParser {
         }
         flow.platforms = try platforms(resolved["platforms"], "platforms")
         flow.minimumMacOS = try number(resolved["min_macos"], "min_macos").map { Int($0) }
+        flow.skipIfRunning = try strings(resolved["skip_if_running"], "skip_if_running")
         flow.setup = try steps(resolved["setup"], phase: "setup", flowApp: flow.app)
         flow.steps = try steps(resolved["steps"], phase: "steps", flowApp: flow.app)
         flow.teardown = try steps(resolved["teardown"], phase: "teardown", flowApp: flow.app)

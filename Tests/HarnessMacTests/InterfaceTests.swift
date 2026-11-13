@@ -61,7 +61,7 @@ struct MCPParityTests {
         #expect(properties("find").contains("links"))
         #expect(properties("menu").contains("real"))
         #expect(properties("menu_select").contains("real"))
-        #expect(properties("read") == ["app", "window", "ref", "text", "role", "id", "exact", "page"])
+        #expect(properties("read") == ["app", "window", "ref", "text", "role", "id", "exact", "page", "visible"])
         #expect(properties("quit").contains("timeout"))
         #expect(properties("pointer").contains("diff"))
         #expect(properties("menu_select").contains("diff"))

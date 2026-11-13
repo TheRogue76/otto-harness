@@ -51,9 +51,13 @@ struct HiddenTreesTests {
     }
 }
 
+private extension CompositorWindow {
+    var size: CGFloat { frame.width }
+}
+
 struct CompositorTests {
-    private func window(_ pid: Int32, _ title: String, focused: Bool = false) -> CompositorWindow {
-        CompositorWindow(pid: pid, title: title, appID: nil, frame: .zero, focused: focused, visible: true, output: nil)
+    private func window(_ pid: Int32, _ title: String, focused: Bool = false, size: CGFloat = 0) -> CompositorWindow {
+        CompositorWindow(pid: pid, title: title, appID: nil, frame: CGRect(x: 0, y: 0, width: size, height: size), focused: focused, visible: true, output: nil)
     }
 
     @Test func matchesAnAppsWindowByPidThenTitle() {
@@ -63,6 +67,15 @@ struct CompositorTests {
         #expect(Compositors.match(windows, pid: 2, title: "Other")?.title == "Notes — b")
         #expect(Compositors.match(windows, pid: 3, title: "Calculator") == nil)
         #expect(Compositors.match(windows, pid: nil, title: "Calculator") == nil)
+    }
+
+    @Test func matchesPastPopupsAndRetitledWindows() {
+        let fixture = [window(4, "Harness Fixture — harness-fixture", size: 600), window(4, "", size: 30)]
+        #expect(Compositors.match(fixture, pid: 4, title: "Harness Fixture")?.size == 600)
+        let popup = [window(5, "Main", size: 600), window(5, "Hover help text", size: 40)]
+        #expect(Compositors.match(popup, pid: 5, title: "Something else")?.title == "Main")
+        let two = [window(6, "One", size: 600), window(6, "Two", size: 600)]
+        #expect(Compositors.match(two, pid: 6, title: "Three") == nil)
     }
 }
 
