@@ -1,5 +1,9 @@
 # Knowledge log
 
+## 2026-11-14
+
+* **Update**: 2.2.0 released with #181, #191, #51, #54 and #122; #185 was declined.
+
 ## 2026-11-13
 
 * **Update**: [Linux support](/plan/linux.md): finding an app's KWin window retries and matches past popups and longer titles.

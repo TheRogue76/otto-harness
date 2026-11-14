@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.2.0
+
+Tables, and fixes for flows, desktops, Android and KDE. Upgrade with `brew update && brew
+upgrade --cask otto-harness`; if Homebrew says the tap is untrusted, run `brew trust
+therogue76/tap` first.
+
+- **Tables.** `collect --role row` on a Mac table or outline (NSTableView, SwiftUI `Table`
+  and `List`) returns each row once, its cells on one line and the columns named. `read` on
+  a table gives its column headers and every row, and `read --visible` (`visible` over MCP)
+  only the rows on screen. Both read rows while they're on screen, since tables don't
+  always give rows out of view all their cells, and `read` scrolls the table back after.
+  Snapshots leave out a long table's rows out of view, with a notice, so they no longer use
+  up their time on them ([#181](https://github.com/TheRogue76/otto-harness/issues/181)).
+- **Windows found by title in Electron apps.** A `wait` or `find` for a window by its title
+  works again in apps with a web area, like VS Code. Flows can say `skip_if_running` to skip
+  while the user's own copy of an app runs
+  ([#191](https://github.com/TheRogue76/otto-harness/issues/191)).
+- **Switching desktops mid-run.** Clicks and scrolls in the background still reach a window
+  after it moves to another desktop, and `collect` tries a failed scroll once more
+  ([#51](https://github.com/TheRogue76/otto-harness/issues/51)).
+- **Android keyboard.** When the keyboard covers the element about to be tapped, it's
+  hidden first, with a `keyboardHidden` notice
+  ([#54](https://github.com/TheRogue76/otto-harness/issues/54)).
+- **KDE.** Finding an app's window in KWin retries and copes with popups and longer titles
+  ([#122](https://github.com/TheRogue76/otto-harness/issues/122)).
+
 ## 2.1.0
 
 Reading web pages and working with browser windows, from agents' feedback. Upgrade with
